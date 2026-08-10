@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>좀비 바이러스 확산 시뮬레이션</title>
+<style>
+  .viz-root{
+    color-scheme: light;
+    --page:#f9f9f7; --surface-1:#fcfcfb;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+    --series-s:#2a78d6; --series-z:#eb6834; --series-r:#1baf7a;
+    --status-good:#0ca30c; --status-critical:#d03b3b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])) .viz-root{
+      color-scheme: dark;
+      --page:#0d0d0d; --surface-1:#1a1a19;
+      --text-primary:#ffffff; --text-secondary:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+      --series-s:#3987e5; --series-z:#d95926; --series-r:#199e70;
+    }
+  }
+  :root[data-theme="dark"] .viz-root{
+    color-scheme: dark;
+    --page:#0d0d0d; --surface-1:#1a1a19;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --series-s:#3987e5; --series-z:#d95926; --series-r:#199e70;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--page);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .viz-root{max-width:1220px;margin:0 auto;padding:22px 20px 44px;color:var(--text-primary);background:var(--page);}
+
+  header h1{font-size:20px;margin:4px 0 3px;font-weight:700;}
+  header .sub{color:var(--text-secondary);font-size:13px;margin:0;}
+
+  .card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;}
+
+  .controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;padding:14px 16px;margin:16px 0 14px;}
+  .ctl{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--text-secondary);}
+  .ctl .val{color:var(--text-primary);font-weight:600;}
+  input[type=range]{width:108px;accent-color:var(--series-s);margin:2px 0 0;}
+  .btns{display:flex;gap:8px;align-items:center;margin-left:auto;}
+  .btn{border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);
+       border-radius:9px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;user-select:none;}
+  .btn.primary{background:var(--series-s);border-color:transparent;color:#fff;}
+  .btn:active{transform:translateY(1px);}
+  .seg-group{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;}
+  .seg{border:0;background:transparent;color:var(--text-secondary);padding:8px 11px;font-size:12px;font-weight:600;cursor:pointer;}
+  .seg.on{background:var(--series-s);color:#fff;}
+  .hint{font-size:11px;color:var(--muted);width:100%;margin-top:-2px;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+  .tile{padding:12px 14px;}
+  .tile .label{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:7px;}
+  .key{display:inline-block;width:14px;height:3px;border-radius:2px;}
+  .tile .value{font-size:26px;font-weight:600;margin-top:3px;letter-spacing:-.01em;}
+  .tile .note{font-size:11px;color:var(--muted);margin-top:2px;}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;margin-top:6px;}
+  .badge .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .tile .detail{font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.45;}
+
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+  @media (max-width:1000px){.panels{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+  .panel-title{font-size:13px;font-weight:700;padding:13px 16px 0;}
+  .panel-sub{font-size:11px;color:var(--muted);padding:2px 16px 0;}
+  .sim-body{padding:10px;}
+  canvas#world{width:100%;aspect-ratio:900/560;display:block;border-radius:8px;}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);
+          padding:10px 16px 0;align-items:center;}
+  .legend .item{display:inline-flex;align-items:center;gap:6px;}
+  .legend .note{color:var(--muted);margin-left:auto;}
+  .chart-wrap{position:relative;padding:4px 10px 0;}
+  .caption{font-size:11px;color:var(--muted);padding:2px 16px 10px;line-height:1.5;}
+
+  .tooltip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);
+           border-radius:9px;padding:8px 11px;font-size:12px;box-shadow:0 5px 16px rgba(0,0,0,.14);
+           display:none;min-width:138px;z-index:5;}
+  .tooltip .tt-t{color:var(--muted);margin-bottom:5px;}
+  .tt-row{display:flex;align-items:center;gap:7px;margin-top:2px;}
+  .tt-row .k{display:inline-block;width:12px;height:2.5px;border-radius:2px;}
+  .tt-row .n{color:var(--text-secondary);}
+  .tt-row .v{margin-left:auto;font-weight:700;color:var(--text-primary);padding-left:12px;}
+
+  details.table-wrap{margin:2px 16px 14px;font-size:12px;color:var(--text-secondary);}
+  details.table-wrap summary{cursor:pointer;user-select:none;padding:4px 0;}
+  .table-scroll{max-height:230px;overflow:auto;margin-top:6px;border:1px solid var(--border);border-radius:8px;}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;}
+  th,td{text-align:right;padding:5px 12px;border-bottom:1px solid var(--grid);}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{color:var(--text-secondary);font-weight:600;position:sticky;top:0;background:var(--surface-1);}
+  td{color:var(--text-primary);}
+
+  footer{margin-top:18px;font-size:11px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="viz-root">
+  <header>
+    <h1>🧟 좀비 바이러스 확산 시뮬레이션</h1>
+    <p class="sub">에이전트 기반 확산 시뮬레이션 + 실시간 관측 데이터로 SZR 역학 모델을 적합해 향후 트렌드를 예측합니다.</p>
+  </header>
+
+  <section class="controls card">
+    <div class="ctl">인구<input type="range" id="c-pop" min="100" max="900" step="50" value="400"><span class="val" id="v-pop">400명</span></div>
+    <div class="ctl">초기 좀비<input type="range" id="c-z0" min="1" max="20" step="1" value="5"><span class="val" id="v-z0">5</span></div>
+    <div class="ctl">감염 확률<input type="range" id="c-inf" min="5" max="95" step="5" value="60"><span class="val" id="v-inf">60%</span></div>
+    <div class="ctl">반격 성공률<input type="range" id="c-kill" min="0" max="80" step="5" value="25"><span class="val" id="v-kill">25%</span></div>
+    <div class="ctl">좀비 속도<input type="range" id="c-zs" min="0.3" max="1.6" step="0.05" value="1.3"><span class="val" id="v-zs">1.30</span></div>
+    <div class="ctl">인간 속도<input type="range" id="c-hs" min="0.3" max="1.6" step="0.05" value="1"><span class="val" id="v-hs">1.00</span></div>
+    <div class="btns">
+      <div class="seg-group" id="speedSeg">
+        <button class="seg on" data-s="1">1×</button><button class="seg" data-s="2">2×</button><button class="seg" data-s="4">4×</button>
+      </div>
+      <button class="btn primary" id="btnStart">▶ 시작</button>
+      <button class="btn" id="btnReset">↺ 리셋</button>
+    </div>
+    <div class="hint">* 인구·초기 좀비 수는 리셋할 때 적용됩니다. 나머지는 실행 중에도 바로 반영돼요. (스페이스바 = 시작/일시정지)</div>
+  </section>
+
+  <section class="stats">
+    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-s)"></span>생존자</div><div class="value" id="tS">—</div><div class="note" id="tSn"></div></div>
+    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-z)"></span>좀비</div><div class="value" id="tZ">—</div><div class="note">감염돼 배회 중</div></div>
+    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-r)"></span>사망(제거)</div><div class="value" id="tR">—</div><div class="note">반격으로 제거된 좀비</div></div>
+    <div class="tile card"><div class="label">트렌드 예측</div><div id="tPred"><div class="detail">데이터 수집 중…</div></div></div>
+  </section>
+
+  <main class="panels">
+    <div class="card">
+      <div class="panel-title">시뮬레이션 월드</div>
+      <div class="panel-sub">파란 점 = 생존자(도주) · 주황 점 = 좀비(추격) · 옅은 점 = 사망</div>
+      <div class="sim-body"><canvas id="world"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="panel-title">확산 추이와 예측 <span style="font-weight:400;color:var(--muted)">(명)</span></div>
+      <div class="legend">
+        <span class="item"><span class="key" style="background:var(--series-s)"></span>생존자</span>
+        <span class="item"><span class="key" style="background:var(--series-z)"></span>좀비</span>
+        <span class="item"><span class="key" style="background:var(--series-r)"></span>사망</span>
+        <span class="note">실선 = 실측 · 점선 = 모델 예측</span>
+      </div>
+      <div class="chart-wrap" id="chartWrap">
+        <svg id="chart" role="img" aria-label="시간별 생존자, 좀비, 사망 인원 추이와 예측 차트"></svg>
+        <div class="tooltip" id="tt">
+          <div class="tt-t" id="ttT"></div>
+          <div class="tt-row"><span class="k" style="background:var(--series-s)"></span><span class="n">생존자</span><span class="v" id="ttS"></span></div>
+          <div class="tt-row"><span class="k" style="background:var(--series-z)"></span><span class="n">좀비</span><span class="v" id="ttZ"></span></div>
+          <div class="tt-row"><span class="k" style="background:var(--series-r)"></span><span class="n">사망</span><span class="v" id="ttR"></span></div>
+        </div>
+      </div>
+      <div class="caption">점선 예측은 최근 관측된 감염·사살 빈도로 전파율 β̂와 제거율 κ̂를 추정한 뒤, SZR 모델(dS=-βSZ/N, dZ=(β-κ)SZ/N, dR=κSZ/N)로 외삽한 결과입니다. 파라미터를 바꾸면 예측도 곧 따라 갱신됩니다. 가로축: 경과 스텝.</div>
+      <details class="table-wrap"><summary>데이터 표 보기</summary>
+        <div class="table-scroll"><table>
+          <thead><tr><th>스텝</th><th>생존자</th><th>좀비</th><th>사망</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table></div>
+      </details>
+    </div>
+  </main>
+
+  <footer>확률적 에이전트 시뮬레이션이라 실행할 때마다 결과가 조금씩 달라집니다 — 점선(모델 예측)과 실선(실제)이 얼마나 맞는지 지켜보는 게 포인트!</footer>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const nf = new Intl.NumberFormat('ko-KR');
+  const root = $('.viz-root');
+
+  // ---- theme colors (read from CSS vars so dark mode stays in sync) ----
+  let C = {};
+  function readColors(){
+    const cs = getComputedStyle(root);
+    const g = n => cs.getPropertyValue(n).trim();
+    C = {S:g('--series-s'), Z:g('--series-z'), R:g('--series-r'),
+         surface:g('--surface-1'), grid:g('--grid'), axis:g('--axis'),
+         muted:g('--muted'), ink:g('--text-primary'), sec:g('--text-secondary'),
+         good:g('--status-good'), crit:g('--status-critical')};
+  }
+  readColors();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); renderChart(); updateTiles(); });
+
+  // ---- parameters ----
+  const P = {pop:400, z0:5, pInf:.6, pKill:.25, zSpeed:1.3, hSpeed:1, simSpeed:1};
+
+  // ---- world state ----
+  const W=900, H=560, CONTACT=11, CONTACT2=CONTACT*CONTACT, CHASE=150, FLEE=60, CELL=45, COOL=10;
+  const cols=Math.ceil(W/CELL), rows=Math.ceil(H/CELL);
+  let agents=[], t=0, running=false;
+  let cS=0, cZ=0, cR=0;
+  let hist={S:[],Z:[],R:[]};          // per-step counts (index = step)
+  let ev={x:[],inf:[],kill:[]};       // per-step interaction mass & events (for model fitting)
+  let pred=null, outcome=null;
+
+  function reset(){
+    t=0; hist={S:[],Z:[],R:[]}; ev={x:[],inf:[],kill:[]}; pred=null; outcome=null;
+    agents=[];
+    for(let i=0;i<P.pop;i++){
+      agents.push({x:3+Math.random()*(W-6), y:3+Math.random()*(H-6),
+                   dir:Math.random()*Math.PI*2, state: i<P.z0?'Z':'S', cool:0});
+    }
+    cS=P.pop-P.z0; cZ=P.z0; cR=0;
+    hist.S.push(cS); hist.Z.push(cZ); hist.R.push(cR);
+    renderChart(); updateTiles(); renderTable();
+  }
+
+  function nearest(a, grid, r){
+    const cr=Math.ceil(r/CELL), cx=(a.x/CELL)|0, cy=(a.y/CELL)|0;
+    let best=-1, bd=r*r;
+    for(let gy=Math.max(0,cy-cr); gy<=Math.min(rows-1,cy+cr); gy++)
+      for(let gx=Math.max(0,cx-cr); gx<=Math.min(cols-1,cx+cr); gx++){
+        const cell=grid[gx+gy*cols]; if(!cell) continue;
+        for(const j of cell){
+          const b=agents[j], dx=b.x-a.x, dy=b.y-a.y, d=dx*dx+dy*dy;
+          if(d<bd){bd=d; best=j;}
+        }
+      }
+    return best;
+  }
+
+  function step(){
+    t++;
+    const N=P.pop;
+    const gridH=new Array(cols*rows), gridZ=new Array(cols*rows);
+    const zi=[], hi=[];
+    for(let i=0;i<agents.length;i++){
+      const a=agents[i]; if(a.state==='R') continue;
+      const c=((a.x/CELL)|0)+((a.y/CELL)|0)*cols;
+      if(a.state==='S'){ (gridH[c]||(gridH[c]=[])).push(i); hi.push(i); }
+      else            { (gridZ[c]||(gridZ[c]=[])).push(i); zi.push(i); }
+    }
+    // zombies chase nearest human in range, otherwise wander
+    for(const i of zi){
+      const z=agents[i]; if(z.cool>0) z.cool--;
+      const j=nearest(z,gridH,CHASE);
+      if(j>=0){ const h=agents[j]; z.dir=Math.atan2(h.y-z.y,h.x-z.x)+(Math.random()-.5)*.3; }
+      else z.dir+=(Math.random()-.5)*.6;
+      z.x+=Math.cos(z.dir)*P.zSpeed; z.y+=Math.sin(z.dir)*P.zSpeed;
+    }
+    // humans flee nearest zombie in range, otherwise stroll
+    for(const i of hi){
+      const h=agents[i]; if(h.cool>0) h.cool--;
+      const j=nearest(h,gridZ,FLEE);
+      let sp=P.hSpeed*.5;
+      if(j>=0){ const z=agents[j]; h.dir=Math.atan2(h.y-z.y,h.x-z.x)+(Math.random()-.5)*.25; sp=P.hSpeed; }
+      else h.dir+=(Math.random()-.5)*.5;
+      h.x+=Math.cos(h.dir)*sp; h.y+=Math.sin(h.dir)*sp;
+    }
+    // walls
+    for(const a of agents){
+      if(a.state==='R') continue;
+      if(a.x<3){a.x=3; a.dir=Math.PI-a.dir;} else if(a.x>W-3){a.x=W-3; a.dir=Math.PI-a.dir;}
+      if(a.y<3){a.y=3; a.dir=-a.dir;}       else if(a.y>H-3){a.y=H-3; a.dir=-a.dir;}
+    }
+    // encounters: one roll per contact, then a cooldown so it's a discrete event
+    const xmass=cS*cZ/N; let inf=0, kills=0;
+    for(const i of zi){
+      const z=agents[i];
+      if(z.state!=='Z'||z.cool>0) continue;
+      const cx=(z.x/CELL)|0, cy=(z.y/CELL)|0;
+      let done=false;
+      for(let gy=Math.max(0,cy-1); !done&&gy<=Math.min(rows-1,cy+1); gy++)
+        for(let gx=Math.max(0,cx-1); !done&&gx<=Math.min(cols-1,cx+1); gx++){
+          const cell=gridH[gx+gy*cols]; if(!cell) continue;
+          for(const j of cell){
+            const h=agents[j];
+            if(h.state!=='S'||h.cool>0) continue;
+            const dx=h.x-z.x, dy=h.y-z.y;
+            if(dx*dx+dy*dy>CONTACT2) continue;
+            h.cool=COOL; z.cool=COOL;
+            if(Math.random()<P.pKill){ z.state='R'; cZ--; cR++; kills++; }
+            else if(Math.random()<P.pInf){ h.state='Z'; cS--; cZ++; inf++; }
+            else{ const d=Math.atan2(dy,dx); h.dir=d;
+                  h.x=Math.max(3,Math.min(W-3,h.x+Math.cos(d)*7));
+                  h.y=Math.max(3,Math.min(H-3,h.y+Math.sin(d)*7)); }
+            done=true; break;
+          }
+        }
+    }
+    hist.S.push(cS); hist.Z.push(cZ); hist.R.push(cR);
+    ev.x.push(xmass); ev.inf.push(inf); ev.kill.push(kills);
+
+    if(!outcome){
+      if(cZ===0){ outcome={type:'contained', t, S:cS}; pred=null; running=false; syncStartBtn(); }
+      else if(cS===0){ outcome={type:'doom', t}; pred=null; running=false; syncStartBtn(); }
+    }
+  }
+
+  // ---- model fitting: estimate beta/kappa from recent events, extrapolate SZR ----
+  function fit(){
+    const Wf=400, n=ev.x.length, i0=Math.max(0,n-Wf);
+    let sx=0, si=0, sk=0;
+    for(let i=i0;i<n;i++){ sx+=ev.x[i]; si+=ev.inf[i]; sk+=ev.kill[i]; }
+    if(sx<3) return null;
+    const beta=si/sx, kappa=sk/sx;
+    let S=cS, Z=cZ, R=cR; const N=P.pop;
+    const ps=[S], pz=[Z], pr=[R];
+    // 차트에는 앞 2500스텝만 그리되, 결말 판정은 25000스텝까지 조용히 적분해 확정한다
+    let doomT=null, endT=null, k=0;
+    for(; k<25000; k++){
+      const x=S*Z/N;
+      S=Math.max(0,S-beta*x); Z=Math.max(0,Z+(beta-kappa)*x); R=Math.min(N,R+kappa*x);
+      if(k<2500){ ps.push(S); pz.push(Z); pr.push(R); }
+      if(doomT===null&&S<1) doomT=t+k+1;
+      if(Z<.5){ endT=t+k+1; break; }
+      if(x<1e-4) break;
+    }
+    return {t0:t, beta, kappa, S:ps, Z:pz, R:pr, doomT, endT, finalS:S, finalZ:Z};
+  }
+
+  // ---- world rendering ----
+  const cv=$('#world'), ctx=cv.getContext('2d');
+  function drawWorld(){
+    const cw=cv.clientWidth; if(!cw) return;
+    const dpr=window.devicePixelRatio||1;
+    const pw=Math.round(cw*dpr), ph=Math.round(cw*H/W*dpr);
+    if(cv.width!==pw||cv.height!==ph){ cv.width=pw; cv.height=ph; }
+    const s=cv.width/W;
+    ctx.setTransform(s,0,0,s,0,0);
+    ctx.fillStyle=C.surface; ctx.fillRect(0,0,W,H);
+    const pass=(color,r,st,alpha)=>{
+      ctx.globalAlpha=alpha; ctx.fillStyle=color; ctx.beginPath();
+      for(const a of agents){ if(a.state!==st) continue; ctx.moveTo(a.x+r,a.y); ctx.arc(a.x,a.y,r,0,6.2832); }
+      ctx.fill(); ctx.globalAlpha=1;
+    };
+    pass(C.R,2.1,'R',.35);
+    pass(C.S,2.4,'S',1);
+    pass(C.Z,2.9,'Z',1);
+  }
+
+  // ---- chart ----
+  const svgNS='http://www.w3.org/2000/svg';
+  const svg=$('#chart'), wrap=$('#chartWrap');
+  const el=(name,attrs,parent)=>{ const e=document.createElementNS(svgNS,name);
+    for(const k in attrs) e.setAttribute(k,attrs[k]); (parent||svg).appendChild(e); return e; };
+  const gGrid=el('g',{}), gData=el('g',{}), gMark=el('g',{}), gCross=el('g',{});
+  const paths={}, dpaths={}, markers={}, keys={}, elabels={};
+  for(const k of ['S','Z','R']){
+    paths[k]=el('path',{fill:'none','stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'},gData);
+    dpaths[k]=el('path',{fill:'none','stroke-width':2,'stroke-dasharray':'7 6','stroke-linecap':'round',opacity:.9},gData);
+    markers[k]=el('circle',{r:4.5,'stroke-width':2},gMark);
+    keys[k]=el('rect',{width:10,height:3,rx:1.5},gMark);
+    elabels[k]=el('text',{'font-size':11,'font-weight':600},gMark);
+  }
+  const crossLine=el('line',{'stroke-width':1,opacity:0},gCross);
+  const focus={}; for(const k of ['S','Z','R']) focus[k]=el('circle',{r:4,'stroke-width':2,opacity:0},gCross);
+  const hit=el('rect',{fill:'transparent'},gCross);
+  const tt=$('#tt'), ttT=$('#ttT'), ttS=$('#ttS'), ttZ=$('#ttZ'), ttR=$('#ttR');
+
+  const niceStep=raw=>{ const p=Math.pow(10,Math.floor(Math.log10(raw))), n=raw/p;
+    return (n<=1?1:n<=2?2:n<=5?5:10)*p; };
+  const buildD=(arr,t0,X,Y)=>{
+    const n=arr.length; if(!n) return '';
+    const stride=Math.max(1,Math.floor(n/900)); let d='';
+    for(let i=0;i<n;i+=stride) d+=(d?'L':'M')+X(t0+i).toFixed(1)+' '+Y(arr[i]).toFixed(1);
+    if((n-1)%stride!==0) d+='L'+X(t0+n-1).toFixed(1)+' '+Y(arr[n-1]).toFixed(1);
+    return d;
+  };
+
+  let scale=null; // current transform, for the hover layer
+  function renderChart(){
+    const w=wrap.clientWidth-20; if(w<120) return;
+    const h=310;
+    svg.setAttribute('width',w); svg.setAttribute('height',h); svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    const m={l:46,r:78,t:14,b:30}, iw=w-m.l-m.r, ih=h-m.t-m.b;
+    const tEnd=Math.max(120, t, pred?pred.t0+pred.S.length-1:0);
+    const ymax=P.pop;
+    const X=v=>m.l+iw*(v/tEnd), Y=v=>m.t+ih*(1-v/ymax);
+    scale={X,Y,tEnd,m,iw,ih,w,h};
+
+    gGrid.textContent='';
+    const ys=niceStep(ymax/4);
+    for(let v=0; v<=ymax+.1; v+=ys){
+      el('line',{x1:m.l,y1:Y(v),x2:m.l+iw,y2:Y(v),stroke:v===0?C.axis:C.grid,'stroke-width':1},gGrid);
+      const tx=el('text',{x:m.l-8,y:Y(v)+4,'text-anchor':'end','font-size':11,fill:C.muted},gGrid);
+      tx.textContent=nf.format(v);
+    }
+    const xs=niceStep(tEnd/5);
+    for(let v=0; v<=tEnd+.1; v+=xs){
+      el('line',{x1:X(v),y1:m.t+ih,x2:X(v),y2:m.t+ih+4,stroke:C.axis,'stroke-width':1},gGrid);
+      const tx=el('text',{x:X(v),y:m.t+ih+18,'text-anchor':'middle','font-size':11,fill:C.muted},gGrid);
+      tx.textContent=nf.format(v);
+    }
+
+    const col={S:C.S,Z:C.Z,R:C.R}, cur={S:cS,Z:cZ,R:cR};
+    for(const k of ['S','Z','R']){
+      paths[k].setAttribute('stroke',col[k]);
+      paths[k].setAttribute('d',buildD(hist[k],0,X,Y));
+      if(pred){ dpaths[k].setAttribute('stroke',col[k]); dpaths[k].setAttribute('d',buildD(pred[k],pred.t0,X,Y)); }
+      else dpaths[k].setAttribute('d','');
+    }
+    // current-value markers + selective direct labels (anti-collision)
+    const items=['S','Z','R'].map(k=>({k,v:cur[k],y:Y(cur[k])})).sort((a,b)=>a.y-b.y);
+    for(let i=1;i<items.length;i++) if(items[i].y-items[i-1].y<14) items[i].y=items[i-1].y+14;
+    for(const it of items){
+      markers[it.k].setAttribute('cx',X(t)); markers[it.k].setAttribute('cy',Y(it.v));
+      markers[it.k].setAttribute('fill',col[it.k]); markers[it.k].setAttribute('stroke',C.surface);
+      keys[it.k].setAttribute('x',X(t)+8); keys[it.k].setAttribute('y',it.y-2);
+      keys[it.k].setAttribute('fill',col[it.k]);
+      elabels[it.k].setAttribute('x',X(t)+22); elabels[it.k].setAttribute('y',it.y+3);
+      elabels[it.k].setAttribute('fill',C.sec);
+      elabels[it.k].textContent=nf.format(it.v);
+    }
+    crossLine.setAttribute('stroke',C.axis);
+    for(const k of ['S','Z','R']){ focus[k].setAttribute('fill',col[k]); focus[k].setAttribute('stroke',C.surface); }
+    hit.setAttribute('x',m.l); hit.setAttribute('y',m.t); hit.setAttribute('width',iw); hit.setAttribute('height',ih);
+  }
+
+  hit.addEventListener('pointermove',e=>{
+    if(!scale) return;
+    const r=svg.getBoundingClientRect();
+    const px=e.clientX-r.left, py=e.clientY-r.top;
+    let tx=Math.round((px-scale.m.l)/scale.iw*scale.tEnd);
+    tx=Math.max(0,Math.min(scale.tEnd,tx));
+    let vals, mode;
+    if(tx<hist.S.length){ vals=[hist.S[tx],hist.Z[tx],hist.R[tx]]; mode='실측'; }
+    else if(pred&&tx>=pred.t0){
+      const k=Math.min(tx-pred.t0,pred.S.length-1);
+      vals=[pred.S[k],pred.Z[k],pred.R[k]].map(Math.round); mode='예측';
+    } else { hideTT(); return; }
+    const x=scale.X(tx);
+    crossLine.setAttribute('x1',x); crossLine.setAttribute('x2',x);
+    crossLine.setAttribute('y1',scale.m.t); crossLine.setAttribute('y2',scale.m.t+scale.ih);
+    crossLine.setAttribute('opacity',1);
+    ['S','Z','R'].forEach((k,i)=>{ focus[k].setAttribute('cx',x); focus[k].setAttribute('cy',scale.Y(vals[i])); focus[k].setAttribute('opacity',1); });
+    ttT.textContent=`t = ${nf.format(tx)} · ${mode}`;
+    ttS.textContent=nf.format(vals[0])+'명'; ttZ.textContent=nf.format(vals[1])+'명'; ttR.textContent=nf.format(vals[2])+'명';
+    tt.style.display='block';
+    const left=(x+14+150>scale.w)?x-160:x+14;
+    tt.style.left=left+'px';
+    tt.style.top=Math.min(Math.max(6,py-34),scale.h-100)+'px';
+  });
+  function hideTT(){ tt.style.display='none'; crossLine.setAttribute('opacity',0);
+    for(const k of ['S','Z','R']) focus[k].setAttribute('opacity',0); }
+  hit.addEventListener('pointerleave',hideTT);
+
+  // ---- tiles ----
+  const tS=$('#tS'), tZ=$('#tZ'), tR=$('#tR'), tPred=$('#tPred'), tSn=$('#tSn');
+  function badgeHTML(color,icon,label,detail,sub){
+    tPred.textContent='';
+    const b=document.createElement('div'); b.className='badge';
+    const d=document.createElement('span'); d.className='dot'; d.style.background=color;
+    b.appendChild(d); b.appendChild(document.createTextNode(icon+' '+label));
+    const dt=document.createElement('div'); dt.className='detail'; dt.textContent=detail;
+    tPred.appendChild(b); tPred.appendChild(dt);
+    if(sub){ const s=document.createElement('div'); s.className='note'; s.textContent=sub; tPred.appendChild(s); }
+  }
+  function updateTiles(){
+    tS.textContent=nf.format(cS); tZ.textContent=nf.format(cZ); tR.textContent=nf.format(cR);
+    tSn.textContent=`전체 ${nf.format(P.pop)}명 중`;
+    if(outcome){
+      if(outcome.type==='contained')
+        badgeHTML(C.good,'🛡','진압 성공',`t=${nf.format(outcome.t)}에 종식 · 생존 ${nf.format(outcome.S)}명`);
+      else
+        badgeHTML(C.crit,'🧟','인류 전멸',`t=${nf.format(outcome.t)}에 마지막 생존자가 감염됐습니다`);
+      return;
+    }
+    if(!pred){ tPred.textContent=''; const d=document.createElement('div'); d.className='detail';
+      d.textContent='데이터 수집 중… (시작을 누르면 관측이 쌓입니다)'; tPred.appendChild(d); return; }
+    const ratio=pred.kappa>0?pred.beta/pred.kappa:Infinity;
+    const sub=`β̂=${pred.beta.toFixed(3)} · κ̂=${pred.kappa.toFixed(3)} · 확산지수 ${ratio===Infinity?'∞':ratio.toFixed(2)}`;
+    if(pred.doomT!==null)
+      badgeHTML(C.crit,'🧟','전멸 위험',`이 추세면 t≈${nf.format(pred.doomT)}에 인류가 전멸합니다`,sub);
+    else if(pred.endT!==null)
+      badgeHTML(C.good,'🛡','진압 우세',`t≈${nf.format(pred.endT)}에 종식 · 생존 약 ${nf.format(Math.round(pred.finalS))}명 예상`,sub);
+    else
+      badgeHTML(C.crit,'⚔️','장기전 예상',`예측 범위 안에 종식 없음 · 확산이 계속됩니다`,sub);
+  }
+
+  // ---- table view ----
+  const tbody=$('#tbody');
+  function renderTable(){
+    tbody.textContent='';
+    const n=hist.S.length, stride=Math.max(1,Math.ceil(n/150));
+    const addRow=i=>{
+      const tr=document.createElement('tr');
+      for(const v of [i,hist.S[i],hist.Z[i],hist.R[i]]){
+        const td=document.createElement('td'); td.textContent=nf.format(v); tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    };
+    for(let i=0;i<n;i+=stride) addRow(i);
+    if((n-1)%stride!==0) addRow(n-1);
+  }
+
+  // ---- controls ----
+  const bind=(id,vid,fmt,set)=>{
+    const c=$(id), v=$(vid);
+    const apply=()=>{ v.textContent=fmt(c.value); set(parseFloat(c.value)); };
+    c.addEventListener('input',apply); apply();
+  };
+  bind('#c-pop','#v-pop',v=>nf.format(v)+'명',v=>{P.pop=v;});
+  bind('#c-z0','#v-z0',v=>v,v=>{P.z0=v;});
+  bind('#c-inf','#v-inf',v=>v+'%',v=>{P.pInf=v/100;});
+  bind('#c-kill','#v-kill',v=>v+'%',v=>{P.pKill=v/100;});
+  bind('#c-zs','#v-zs',v=>(+v).toFixed(2),v=>{P.zSpeed=v;});
+  bind('#c-hs','#v-hs',v=>(+v).toFixed(2),v=>{P.hSpeed=v;});
+  $('#speedSeg').addEventListener('click',e=>{
+    const b=e.target.closest('.seg'); if(!b) return;
+    P.simSpeed=+b.dataset.s;
+    for(const s of document.querySelectorAll('.seg')) s.classList.toggle('on',s===b);
+  });
+  const btnStart=$('#btnStart');
+  function syncStartBtn(){ btnStart.textContent=running?'❚❚ 일시정지':'▶ 시작'; }
+  btnStart.addEventListener('click',()=>{
+    if(outcome){ reset(); running=true; syncStartBtn(); return; }  // finished — restart fresh
+    running=!running; syncStartBtn();
+  });
+  $('#btnReset').addEventListener('click',()=>{ running=false; syncStartBtn(); reset(); });
+  document.addEventListener('keydown',e=>{
+    if(e.code==='Space'&&!e.target.closest('input,button,details,summary')){
+      e.preventDefault();
+      if(!outcome){ running=!running; syncStartBtn(); }
+    }
+  });
+
+  // ---- main loop (time-based: 90 steps/sec × 배속, independent of display refresh rate) ----
+  let lastChartT=-1, lastTableT=-1, lastFitT=0, lastTS=0, acc=0;
+  function tick(n){
+    for(let k=0;k<n;k++){ if(!outcome) step(); }
+    if(!outcome && cZ>0 && t>=30 && t-lastFitT>=15){ pred=fit(); lastFitT=t; }
+  }
+  function frame(ts){
+    if(running){
+      if(!lastTS) lastTS=ts;
+      acc+=ts-lastTS; lastTS=ts;
+      const iv=1000/(90*P.simSpeed);
+      const n=Math.min(Math.floor(acc/iv), 12*P.simSpeed);
+      acc=Math.min(acc-n*iv, 120);
+      tick(n);
+    } else { lastTS=0; acc=0; }
+    drawWorld();
+    if(t!==lastChartT && (t%5===0||!running)){ renderChart(); updateTiles(); lastChartT=t; }
+    if(t!==lastTableT && t%50===0){ renderTable(); lastTableT=t; }
+    requestAnimationFrame(frame);
+  }
+  new ResizeObserver(()=>renderChart()).observe(wrap);
+
+  // 콘솔에서 실험할 수 있는 미니 API (예: zombieSim.runSteps(500); zombieSim.state())
+  window.zombieSim={
+    runSteps(n){ tick(n); renderChart(); updateTiles(); renderTable(); drawWorld(); return this.state(); },
+    state(){ return {t, S:cS, Z:cZ, R:cR, outcome, beta:pred?pred.beta:null, kappa:pred?pred.kappa:null}; },
+    restart(){ running=false; syncStartBtn(); reset(); return this.state(); },
+    setParams(o){ Object.assign(P,o); }
+  };
+
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

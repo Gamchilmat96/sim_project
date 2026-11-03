@@ -243,13 +243,13 @@
       <div class="ctl">발생 국가
         <select id="c-origin"><option value="random">무작위</option></select>
       </div>
-      <div class="ctl">전파율 β<input type="range" id="c-beta" min="0.15" max="0.60" step="0.01" value="0.34"><span class="val" id="v-beta">0.34</span></div>
-      <div class="ctl">반격 제거율 κ<input type="range" id="c-kappa" min="0.10" max="0.45" step="0.01" value="0.25"><span class="val" id="v-kappa">0.25</span></div>
-      <div class="ctl">잠복기<input type="range" id="c-tinc" min="0" max="10" step="0.5" value="2"><span class="val" id="v-tinc">2.0일</span></div>
-      <div class="ctl">좀비 수명<input type="range" id="c-zlife" min="30" max="720" step="30" value="180"><span class="val" id="v-zlife">180일</span></div>
+      <div class="ctl"><span id="lbBeta">전파율 β</span><input type="range" id="c-beta" min="0.15" max="2.50" step="0.01" value="0.34"><span class="val" id="v-beta">0.34</span></div>
+      <div class="ctl"><span id="lbKappa">반격 제거율 κ</span><input type="range" id="c-kappa" min="0.10" max="0.45" step="0.01" value="0.25"><span class="val" id="v-kappa">0.25</span></div>
+      <div class="ctl">잠복기<input type="range" id="c-tinc" min="0" max="14" step="0.5" value="2"><span class="val" id="v-tinc">2.0일</span></div>
+      <div class="ctl"><span id="lbZlife">좀비 수명</span><input type="range" id="c-zlife" min="3" max="720" step="1" value="180"><span class="val" id="v-zlife">180일</span></div>
       <div class="ctl">항공 이동량<input type="range" id="c-air" min="0" max="30" step="1" value="12"><span class="val" id="v-air">1,200만/일</span></div>
       <div class="ctl">육로 이동 계수<input type="range" id="c-land" min="0" max="3" step="0.1" value="1"><span class="val" id="v-land">1.0</span></div>
-      <div class="ctl">초기 좀비<input type="range" id="c-z0" min="1" max="50" step="1" value="10"><span class="val" id="v-z0">10</span></div>
+      <div class="ctl"><span id="lbZ0">초기 좀비</span><input type="range" id="c-z0" min="1" max="50" step="1" value="10"><span class="val" id="v-z0">10</span></div>
       <div class="ctl" title="켜면 예측 모델이 신의 시점 데이터가 아니라 지연·과소 보고된 데이터로만 적합합니다">현실 관측
         <label style="display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;cursor:pointer">
           <input type="checkbox" id="c-obs" checked style="accent-color:var(--series-s)"><span class="val">보고 기준 적합</span>
@@ -263,8 +263,8 @@
 
   <section class="stats">
     <div class="tile card"><div class="label"><span class="key" style="background:var(--series-s)"></span>세계 생존자</div><div class="value" id="tS">—</div><div class="note" id="tSn"></div></div>
-    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-z)"></span>좀비</div><div class="value" id="tZ">—</div><div class="note" id="tZn">감염 확인 0/172개국</div></div>
-    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-r)"></span>사망(제거)</div><div class="value" id="tR">—</div><div class="note" id="tRn"></div></div>
+    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-z)"></span><span id="lbTileZ">좀비</span></div><div class="value" id="tZ">—</div><div class="note" id="tZn">감염 확인 0/172개국</div></div>
+    <div class="tile card"><div class="label"><span class="key" style="background:var(--series-r)"></span><span id="lbTileR">사망(제거)</span></div><div class="value" id="tR">—</div><div class="note" id="tRn"></div></div>
     <div class="tile card"><div class="label">트렌드 예측</div><div id="tPred"><div class="detail">데이터 수집 중…</div></div><button class="btn" id="btnFate" style="margin-top:8px;padding:5px 10px;font-size:11.5px">🎲 운명 분포</button><div id="fateOut" class="detail" style="white-space:pre-line"></div></div>
   </section>
 
@@ -277,7 +277,7 @@
 
   <main class="panels">
     <div class="card">
-      <div class="panel-title">세계 지도 <span style="font-weight:400;color:var(--muted)">색 = 인구 대비 좀비 비율</span></div>
+      <div class="panel-title">세계 지도 <span id="lbMapSub" style="font-weight:400;color:var(--muted)">색 = 인구 대비 좀비 비율</span></div>
       <div class="map-wrap">
         <svg id="map" viewBox="0 0 960 500" role="img" aria-label="세계 감염 현황 지도">
           <defs>
@@ -291,7 +291,7 @@
           <g id="gFx" style="pointer-events:none"></g>
         </svg>
         <div class="legend-ov">
-          <div class="t">감염률 (인구 대비 좀비)</div>
+          <div class="t" id="lbLgT">감염률 (인구 대비 좀비)</div>
           <div class="lg-ramp"><i style="background:var(--z0)"></i><i style="background:var(--z1)"></i><i style="background:var(--z2)"></i><i style="background:var(--z3)"></i><i style="background:var(--z4)"></i><i style="background:var(--z5)"></i></div>
           <div class="lg-lab"><span>0.1%</span><span>1</span><span>5</span><span>20</span><span>60</span><span>100%</span></div>
           <div class="lg-row"><span class="sw" style="background:var(--map-none)"></span>미감염/진압 <span class="sw" style="background:var(--map-dead);background-image:repeating-linear-gradient(45deg,var(--map-hatch) 0 1px,transparent 1px 4px)"></span>붕괴</div>
@@ -303,7 +303,8 @@
           <b>▶ 시작</b>을 누르면 세계가 움직이고, 각국 정부가 스스로 대응합니다(🤖 자동).<br>
           <b>지도의 국가를 클릭</b>하면 상세 현황이, <b>🎮 수동</b>으로 바꾸면 직접 개입할 수 있습니다.<br>
           차트의 <b>점선은 관측 데이터로 적합한 SZR 모델의 예측</b> — 실선(실제)과 비교하는 게 핵심 재미입니다.<br>
-          끝나면 <b>📊 결과 분석</b> 탭에서 이 판의 역학 보고서를 확인하세요.</p>
+          끝나면 <b>📊 결과 분석</b> 탭에서 이 판의 역학 보고서를 확인하세요.<br>
+          시나리오 목록의 <b>🦠 실제 병원체</b>를 고르면 현실 모드 — 코로나·홍역·에볼라를 문헌 기반 수치로 돌려볼 수 있습니다 (교육용 단순화 모델).</p>
           <div style="text-align:center"><button class="btn primary" id="introGo">시작하기</button></div>
         </div></div>
         <div class="banner" id="banner"><div class="inner">
@@ -329,7 +330,7 @@
     <div class="panel-title">세계 확산 추이와 예측</div>
     <div class="legend">
       <span class="item"><span class="key" style="background:var(--series-s)"></span>생존자(면역 포함)</span>
-      <span class="item"><span class="key" style="background:var(--series-z)"></span>좀비</span>
+      <span class="item"><span class="key" style="background:var(--series-z)"></span><span id="lbLgZ">좀비</span></span>
       <span class="item"><span class="key" style="background:var(--series-r)"></span>사망</span>
       <label class="item" style="cursor:pointer;user-select:none"><input type="checkbox" id="ghostChk" checked style="accent-color:var(--series-s);margin:0 3px 0 0">과거 예측</label>
       <span class="note">실선 = 실측 · 점선 = 예측 · 음영 = 불확실성 · 점-대시 = 반사실 분기</span>
@@ -339,7 +340,7 @@
       <div class="tooltip" id="tt">
         <div class="tt-t" id="ttT"></div>
         <div class="tt-row"><span class="k" style="background:var(--series-s)"></span><span class="n">생존자</span><span class="v" id="ttS"></span></div>
-        <div class="tt-row"><span class="k" style="background:var(--series-z)"></span><span class="n">좀비</span><span class="v" id="ttZ"></span></div>
+        <div class="tt-row"><span class="k" style="background:var(--series-z)"></span><span class="n" id="lbTtZ">좀비</span><span class="v" id="ttZ"></span></div>
         <div class="tt-row"><span class="k" style="background:var(--series-r)"></span><span class="n">사망</span><span class="v" id="ttR"></span></div>
       </div>
     </div>
@@ -415,7 +416,10 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   }
 
   // ---- 파라미터 ----
-  const P={beta:0.34,kappa:0.25,zlife:180,tinc:2,alpha:0.08,atotal:12e6,kland:1.0,z0:10,simSpeed:1,origin:'random',vacStep:8}; // zlife=좀비 평균 수명(일) · alpha=좀비 살상률
+  const P={beta:0.34,kappa:0.25,zlife:180,tinc:2,alpha:0.08,atotal:12e6,kland:1.0,z0:10,simSpeed:1,origin:'random',vacStep:8,
+    ifr:0.01,epre:0,imm:3650,vesc:0.35}; // zlife=수명/감염기간 · alpha=좀비 살상률 · ifr=치명률(현실) · epre=발증 전 전파 비율 · imm=면역 지속(일) · vesc=변이당 백신·면역 효율 유지율(1=항원 안정, 회피 없음)
+  let realMode=false; // 🦠 현실 모드: 좀비→감염자, 제거→격리, 수명→감염기간+회복(면역), 살상→질병 사망(IFR)
+  const T=(z,r)=>realMode?r:z; // 용어 사전
 
   // ---- 영화 기반 시나리오 프리셋 ----
   const SCENARIOS={
@@ -430,6 +434,18 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       origin:'US',beta:0.52,kappa:0.12,atotal:15e6,kland:1.0,z0:30,zlife:540,tinc:5,vacStep:12},
     walking:{nm:'워킹데드',ds:'느리지만 끝없이 밀려오는 워커. 세계는 천천히 무너진다 — 길고 긴 생존의 시대.',
       origin:'US',beta:0.22,kappa:0.16,atotal:6e6,kland:0.8,z0:10,zlife:540,tinc:3,vacStep:8},
+    covid:{real:true,nm:'코로나19 원형(2020)',ds:'R₀≈2.8 · 발증 전 전파 40% · IFR 0.8% — 격리를 비웃은 바이러스.',
+      origin:'CN',beta:0.40,kappa:0.10,tinc:5,zlife:7,atotal:12e6,kland:1.0,z0:20,vacStep:10,ifr:0.008,epre:0.40,imm:240,vesc:0.35},
+    omicron:{real:true,nm:'오미크론(2021)',ds:'R₀≈9 · 면역 회피 — 전파력의 끝. 면역은 5개월이면 샌다.',
+      origin:'ZA',beta:1.50,kappa:0.10,tinc:3,zlife:6,atotal:12e6,kland:1.0,z0:30,vacStep:10,ifr:0.001,epre:0.45,imm:150,vesc:0.35},
+    flu1918:{real:true,nm:'1918 인플루엔자',ds:'스페인 독감, IFR ~2.5% — 시대를 산업혁명기로 맞추면 역사 재현.',
+      origin:'US',beta:0.50,kappa:0.08,tinc:2,zlife:5,atotal:8e6,kland:1.0,z0:20,vacStep:4,ifr:0.025,epre:0.20,imm:365,vesc:0.65},
+    measles:{real:true,nm:'홍역',ds:'R₀ 12~18 — 집단면역 ~95%가 필요한 이유. 면역은 평생.',
+      origin:'random',beta:1.90,kappa:0.08,tinc:12,zlife:8,atotal:12e6,kland:1.0,z0:10,vacStep:10,ifr:0.002,epre:0.10,imm:36500,vesc:1},
+    ebola:{real:true,nm:'에볼라',ds:'치명률 ~50% · 저전파(R₀≈1.8) — 무섭지만 멀리 못 가는 이유.',
+      origin:'CD',beta:0.20,kappa:0.25,tinc:9,zlife:9,atotal:8e6,kland:0.8,z0:10,vacStep:8,ifr:0.50,epre:0.05,imm:3650,vesc:1},
+    sars03:{real:true,nm:'사스(2003)',ds:'발증 후에만 전파(발증 전 ~2%) — 격리만으로 박멸이 가능했던 이유.',
+      origin:'CN',beta:0.38,kappa:0.30,tinc:5,zlife:8,atotal:8e6,kland:1.0,z0:10,vacStep:8,ifr:0.10,epre:0.02,imm:3650,vesc:1},
     kingdom:{nm:'킹덤(조선)',ds:'생사역이 창궐한 조선. 하늘길이 없던 시대 — 국경과 산맥이 마지막 방벽이다.',
       origin:'KR',beta:0.40,kappa:0.30,atotal:0,kland:0.6,z0:8,zlife:120,tinc:1,vacStep:8},
   };
@@ -446,12 +462,19 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   let curEra='modern',eraVacOn=true,eraVacStepF=1,eraVacRampF=1,eraMil=1,eraGovF=1;
   let curScenario='custom',applyingScn=false;
   let autoMode=true; // 🤖 자동 대응(관전) / 🎮 수동 개입(게임)
-  const ACTIONS={
+  const ACTIONS_Z={
     border:{ic:'⛔',nm:'국경 봉쇄',cost:60,dur:90,prep:0,ds:'육로 통행 90일간 85% 차단'},
     airport:{ic:'✈',nm:'공항 폐쇄',cost:80,dur:60,prep:0,ds:'항공편 60일간 95% 차단'},
     military:{ic:'🪖',nm:'군 투입',cost:120,dur:30,prep:7,ds:'준비 7일 후 30일간 집중 소탕'},
     dist:{ic:'😷',nm:'방역 통제',cost:70,dur:60,prep:0,ds:'접촉 60일간 절반으로 감소'},
   };
+  const ACTIONS_R={
+    border:{ic:'⛔',nm:'국경 봉쇄',cost:60,dur:90,prep:0,ds:'육로 통행 90일간 85% 차단'},
+    airport:{ic:'✈',nm:'공항 폐쇄',cost:80,dur:60,prep:0,ds:'항공편 60일간 95% 차단'},
+    military:{ic:'🧪',nm:'집중 검사·추적',cost:120,dur:30,prep:7,ds:'준비 7일 후 30일간 검사·격리 강화'},
+    dist:{ic:'😷',nm:'방역 통제',cost:70,dur:60,prep:0,ds:'접촉 60일간 절반으로 감소'},
+  };
+  let ACTIONS=ACTIONS_Z;
   const VAC_COST=50, VAC_CD=20, VAC_CAP=60e6, VAC_RAMP=120; // 생산능력 6천만 도즈/일까지 120일 램프
   const HRING=120; // 국가별 스파크라인 링 버퍼(일)
 
@@ -522,9 +545,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const z0=Math.min(P.z0,S[originIdx]);S[originIdx]-=z0;Z1[originIdx]=z0;Z[originIdx]=z0;everInf[originIdx]=1;infDay[originIdx]=0;
     if(!mcMode)logClear();
     if(curScenario!=='custom')logAdd('🎬',`시나리오 <b>${SCENARIOS[curScenario].nm}</b> — ${SCENARIOS[curScenario].ds}`);
-    logAdd('🧪','어딘가에서 원인 불명의 실종 신고가 이어지고 있습니다…');
+    logAdd('🧪',T('어딘가에서 원인 불명의 실종 신고가 이어지고 있습니다…','어딘가에서 원인 불명의 폐렴 환자가 보고되고 있습니다…'));
     pushHist();ringStore();
-    for(const i of playIdx){ha5[i*MAXS]=S[i]+V[i];hz5[i*MAXS]=0;}histC5n=1;
+    for(const i of playIdx){ha5[i*MAXS]=S[i]+V[i]+(realMode?E[i]:0);hz5[i*MAXS]=0;}histC5n=1;
     if(!mcMode){
       selected=-1;
       if(typeof curTab!=='undefined'&&curTab==='analysis')switchTab('board');
@@ -535,12 +558,12 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
 
   function pushHist(){
     let a=0,z=0,r=0,v2=0;
-    for(const i of playIdx){a+=S[i]+V[i];z+=Z[i];r+=R[i]+F[i];v2+=V[i];}
+    for(const i of playIdx){a+=S[i]+V[i]+(realMode?E[i]+Z[i]:0);z+=Z[i];r+=R[i]+F[i];v2+=V[i];} // 현실 모드: 감염자도 생존자
     hist.A.push(a);hist.Z.push(z);hist.R.push(r);hist.V.push(v2);
   }
   function ringStore(){
     const k=day%HRING;
-    for(const i of playIdx){hcA[i*HRING+k]=S[i]+V[i];hcZ[i*HRING+k]=Z[i];}
+    for(const i of playIdx){hcA[i*HRING+k]=S[i]+V[i]+(realMode?E[i]:0);hcZ[i*HRING+k]=Z[i];}
   }
 
   // ---- 개입 multiplier 재계산 ----
@@ -582,21 +605,22 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       for(const i of playIdx){
         const Ni=ctry[i].pop;
         if(Z[i]>0||E[i]>0){
-          dXI+=S[i]*Z[i]/Ni*dt;dXK+=(S[i]+V[i]+E[i])*Z[i]/Ni*dt;
+          const FZ=Z[i]+P.epre*E[i]; // 감염력 풀 (현실: 발증 전 전파 포함, 좀비: epre=0)
+          dXI+=S[i]*FZ/Ni*dt;dXK+=(S[i]+V[i]+E[i])*Z[i]/Ni*dt;
           const behav=1-0.35*fearL[i]*fatig[i];                       // 공포는 접촉을 줄이고, 피로는 그 효과를 갉아먹는다
           const med=Z[i]>0.005*effGov[i]*Ni?0.55:1;                   // 수용 능력 초과 = 의료 붕괴
           const bi=P.beta*betaMul*distMul[i]*behav*seas[i],
                 ki=P.kappa*ramp(day)*(1+0.04*variants.length)*milMul[i]*med; // 변이가 강해지면 인류도 학습한다
           const aEff=(med<1?P.alpha*1.4:P.alpha)*trA;
-          const pInf=1-Math.exp(-bi*Z[i]/Ni*dt);
-          const pInfV=1-Math.exp(-bi*(1-vac.eff)*Z[i]/Ni*dt); // 접종자도 변이 앞에선 뚫린다
+          const pInf=1-Math.exp(-bi*FZ/Ni*dt);
+          const pInfV=1-Math.exp(-bi*(1-vac.eff)*FZ/Ni*dt); // 접종자도 변이 앞에선 뚫린다
           const pAtk=1-Math.exp(-aEff*Z[i]/Ni*dt);             // 물리 살상 (의료 붕괴 시 가중)
           const pProg=P.tinc<=0?1:1-Math.exp(-dt/(P.tinc*trT));
           const pKill=1-Math.exp(-ki*(S[i]+V[i]+E[i])/Ni*dt);
           const pMil=1-Math.exp(-dmil[i]*dt);
           const pRot=1-Math.exp(-3/P.zlife*dt); // 3단계 부패 사슬 → 평균 수명 zlife일
           const nE=binom(S[i],pInf), nEv=vac.deployed?binom(V[i],pInfV):0,
-                nFs=binom(S[i]-nE,pAtk), nFv=binom(V[i]-nEv,pAtk),
+                nFs=realMode?0:binom(S[i]-nE,pAtk), nFv=realMode?0:binom(V[i]-nEv,pAtk), // 현실: 좀비 습격 없음, 사망은 IFR로
                 nT=binom(E[i],pProg),
                 nK=binom(Z[i],pKill), nD=binom(Z[i]-nK,pMil);
           const remF=Z[i]>0?Math.min(1,(nK+nD)/Z[i]):0; // 제거·소탕은 부패 단계에 비례 배분
@@ -605,7 +629,13 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
           Z1[i]+=nT-a1;Z2[i]+=a1-a2;Z3[i]+=a2-rot;
           S[i]-=nE+nFs;V[i]-=nEv+nFv;E[i]+=nE+nEv-nT;
           Z[i]=Math.max(0,Z1[i]+Z2[i]+Z3[i]);
-          R[i]+=nK+nD+rot;F[i]+=nFs+nFv;dInc[i]+=nT+nFs+nFv;
+          if(realMode){ // 출구(격리 종료·감염기간 종료) = IFR만큼 사망, 나머지는 회복→면역(V)
+            const exits=nK+nD+rot;
+            const sev=1-0.7*Math.min(1,cumInf[i]/Ni); // 면역 경험이 쌓이면 중증화가 줄어든다 (재감염 보호)
+            const died=Math.min(exits,exits*Math.min(1,P.ifr*trA*(med<1?1.5:1)*sev)); // 중증화 변이·의료 붕괴는 IFR 가중
+            R[i]+=died;V[i]+=exits-died;
+          } else {R[i]+=nK+nD+rot;}
+          F[i]+=nFs+nFv;dInc[i]+=nT+nFs+nFv;
           cumInf[i]+=nT;dInf+=nE;dKill+=nK; // 탐지는 '좀비화(전환)' 기준
         }
 
@@ -649,7 +679,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       }
       if(ctryContained.has(i)&&Z[i]>=1){ctryContained.delete(i);logAdd('🧟',`<b>${ctry[i].name}</b> 재발생 — 잠복 감염이 전환되었습니다`);}
       if(revealed[i]&&Z[i]<1&&E[i]<1&&everInf[i]&&!ctryDead(i)&&!ctryContained.has(i)){
-        ctryContained.add(i);logAdd('🛡',`<b>${ctry[i].name}</b> 진압 — 좀비가 확인되지 않습니다`);
+        ctryContained.add(i);logAdd('🛡',`<b>${ctry[i].name}</b> ${T('진압 — 좀비가 확인되지 않습니다','종식 — 감염자가 확인되지 않습니다')}`);
       }
       if(ctryDead(i)&&!ctryFallen.has(i)){ctryFallen.add(i);fallDay[i]=day;logAdd('💀',`<b>${ctry[i].name}</b> 붕괴 — 생존자가 거의 남지 않았습니다`);}
     }
@@ -710,6 +740,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         if(S[i]+V[i]<1)continue;
         const b=binom(S[i]+V[i],cbr), dS2=binom(S[i],2.2e-5), dV2=binom(V[i],2.2e-5);
         S[i]+=b-dS2;V[i]-=dV2;
+        if(realMode&&V[i]>=1){const nW=binom(V[i],1-Math.exp(-1/P.imm));V[i]-=nW;S[i]+=nW;} // 면역 감소 → 재감염 가능
       }
     }
     // 변이 출현: 세계 감염 규모에 비례
@@ -722,23 +753,24 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         variants.push({name:vn,day,trait});
         betaMul=Math.min(1.5,betaMul*1.06);
         let msg=`<b>${vn} 변이</b> 출현 — 전파력 +6%`;
-        if(trait==='fast')msg+=' · 🏃 달리는 변이(살상력↑)';
+        if(trait==='fast')msg+=T(' · 🏃 달리는 변이(살상력↑)',' · 🤒 중증화 변이(치명률↑)');
         else if(trait==='cold')msg+=' · ❄️ 한랭 내성(겨울 무효)';
         else if(trait==='stealth')msg+=' · 🕶 은신 변이(잠복기 연장)';
-        if(vac.deployed){const bef=Math.round(vac.eff*100);vac.eff*=0.35;
+        if(vac.deployed&&P.vesc<1){const bef=Math.round(vac.eff*100);vac.eff*=P.vesc;
           msg+=` · 백신 효율 ${bef}%→${Math.round(vac.eff*100)}% 급락`;}
+        else if(vac.deployed)msg+=' · 항원 안정 — 면역 회피 없음';
         logAdd('🧬',msg);
       }
     }
     // RP + 백신
     let aliveW=0,zW=0,eW=0;revInfN=0;
-    for(const i of playIdx){aliveW+=S[i]+V[i];zW+=Z[i];eW+=E[i];if(revealed[i]&&Z[i]>=1)revInfN++;}
+    for(const i of playIdx){aliveW+=S[i]+V[i]+(realMode?E[i]+Z[i]:0);zW+=Z[i];eW+=E[i];if(revealed[i]&&Z[i]>=1)revInfN++;}
     rp=Math.min(400,rp+2+8*aliveW/NW);
     if(autoMode)autoRespond();
     // 기록
     pushHist();ringStore();
     if(day%5===0){const si5=day/5;
-      if(si5<MAXS){for(const i of playIdx){ha5[i*MAXS+si5]=S[i]+V[i];hz5[i*MAXS+si5]=Z[i];}histC5n=Math.max(histC5n,si5+1);}}
+      if(si5<MAXS){for(const i of playIdx){ha5[i*MAXS+si5]=S[i]+V[i]+(realMode?E[i]:0);hz5[i*MAXS+si5]=Z[i];}histC5n=Math.max(histC5n,si5+1);}}
     if(!mcMode&&day%90===0){autoSnaps.push({day,snap:snapshot()});if(autoSnaps.length>8)autoSnaps.shift();}
     evXI.push(dXI);evXK.push(dXK);evInf.push(dInf);evKill.push(dKill);
     { // 보고 체계: 0~7일 지연 커널 × 과소 보고 × 주말 효과
@@ -756,7 +788,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     }
   }
   const ctryContained=new Set(),ctryFallen=new Set();
-  const ctryDead=i=>(S[i]+V[i])<0.005*ctry[i].pop;
+  const ctryDead=i=>(S[i]+V[i]+(realMode?E[i]+Z[i]:0))<0.005*ctry[i].pop;
 
   // ---- 🤖 자동 대응: 각국 정부가 '알려진' 정보만 보고 스스로 발동 ----
   function tryAuto(i,type,cond){
@@ -833,14 +865,14 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         else if(e.type==='dist')dM[e.ci]=Math.min(dM[e.ci],e.auto?1-0.35*f:0.5);
         else{mM[e.ci]=Math.max(mM[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);dm[e.ci]=Math.max(dm[e.ci],0.08*f*eraMil);}
       }
-      let a=0,zz=0;for(const i of playIdx){a+=s[i]+v[i];zz+=z[i];}
+      let a=0,zz=0;for(const i of playIdx){a+=s[i]+v[i]+(realMode?e[i]+z[i]:0);zz+=z[i];}
       wa.push(a);wz.push(zz);wr.push(rww);
       for(const i of playIdx){
         if(z[i]<=0&&e[i]<=0)continue;
-        const Ni=ctry[i].pop,x=s[i]*z[i]/Ni;
+        const Ni=ctry[i].pop,x=s[i]*(z[i]+P.epre*e[i])/Ni;
         const dI=beta*dM[i]*x*dtp,dT=P.tinc<=0?e[i]:Math.min(e[i],e[i]/P.tinc*dtp),
-              dIv=beta*dM[i]*(1-vac.eff)*v[i]*z[i]/Ni*dtp,
-              dFs=P.alpha*s[i]*z[i]/Ni*dtp, dFv=P.alpha*v[i]*z[i]/Ni*dtp,
+              dIv=beta*dM[i]*(1-vac.eff)*v[i]*(z[i]+P.epre*e[i])/Ni*dtp,
+              dFs=realMode?0:P.alpha*s[i]*z[i]/Ni*dtp, dFv=realMode?0:P.alpha*v[i]*z[i]/Ni*dtp,
               dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i])*z[i]*dtp;
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
@@ -849,7 +881,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         }
         s[i]=Math.max(0,s[i]-dI-dv-dFs);v[i]=Math.max(0,v[i]+dv-dIv-dFv);
         e[i]=Math.max(0,e[i]+dI+dIv-dT);
-        z[i]=Math.max(0,z[i]+dT-dK);rww+=dK+dFs+dFv;
+        z[i]=Math.max(0,z[i]+dT-dK);
+        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni);const dd=dK*Math.min(1,P.ifr*sev);rww+=dd;v[i]+=dK-dd;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
+        else rww+=dK+dFs+dFv;
       }
       lm.fill(0);
       for(const j of playIdx){
@@ -896,7 +930,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       }
       // 기록
       if(k*dtp<=CHART||k%20===0){
-        let a=0,zz=0,ee=0;for(const i of playIdx){a+=s[i]+v[i];zz+=z[i];ee+=e[i];}
+        let a=0,zz=0,ee=0;for(const i of playIdx){a+=s[i]+v[i]+(realMode?e[i]+z[i]:0);zz+=z[i];ee+=e[i];}
         if(k*dtp<=CHART){wa.push(a);wz.push(zz);wr.push(rww);}
         if(doomT===null&&a<1000)doomT=tau; // 결정론 적분의 '사실상 전멸'(1천 명 미만) 근사
         if(endT===null&&zz<1&&ee<1&&k>0)endT=tau;
@@ -906,15 +940,15 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       }
       if(k*dtp<=CHART&&(k*dtp)%SPARK_EV<dtp){
         const si2=Math.round(k*dtp/SPARK_EV);
-        if(si2<sparkN)for(const i of playIdx){pcA[i*sparkN+si2]=s[i]+v[i];pcZ[i*sparkN+si2]=z[i];}
+        if(si2<sparkN)for(const i of playIdx){pcA[i*sparkN+si2]=s[i]+v[i]+(realMode?e[i]:0);pcZ[i*sparkN+si2]=z[i];}
       }
       // ODE
       for(const i of playIdx){
         if(z[i]<=0&&e[i]<=0)continue;
-        const Ni=ctry[i].pop,x=s[i]*z[i]/Ni;
+        const Ni=ctry[i].pop,x=s[i]*(z[i]+P.epre*e[i])/Ni;
         const dI=beta*dM[i]*x*dtp, dT=P.tinc<=0?e[i]:Math.min(e[i],e[i]/P.tinc*dtp),
-              dIv=beta*dM[i]*(1-vac.eff)*v[i]*z[i]/Ni*dtp,
-              dFs=P.alpha*s[i]*z[i]/Ni*dtp, dFv=P.alpha*v[i]*z[i]/Ni*dtp,
+              dIv=beta*dM[i]*(1-vac.eff)*v[i]*(z[i]+P.epre*e[i])/Ni*dtp,
+              dFs=realMode?0:P.alpha*s[i]*z[i]/Ni*dtp, dFv=realMode?0:P.alpha*v[i]*z[i]/Ni*dtp,
               dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i])*z[i]*dtp;
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
@@ -923,7 +957,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         }
         s[i]=Math.max(0,s[i]-dI-dv-dFs);v[i]=Math.max(0,v[i]+dv-dIv-dFv);
         e[i]=Math.max(0,e[i]+dI+dIv-dT);
-        z[i]=Math.max(0,z[i]+dT-dK);rww+=dK+dFs+dFv;
+        z[i]=Math.max(0,z[i]+dT-dK);
+        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni);const dd=dK*Math.min(1,P.ifr*sev);rww+=dd;v[i]+=dK-dd;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
+        else rww+=dK+dFs+dFv;
       }
       // 기대값 커플링 + 미감염국 누적 압력
       lm.fill(0);
@@ -1013,7 +1049,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         enc[k]={__ta:v.constructor.name,b:btoa(s2)};
       } else enc[k]=v;
     }
-    return JSON.stringify({v:1,P:{...P},scenario:curScenario,era:curEra,auto:autoMode,snap:enc,savedAt:Date.now()});
+    return JSON.stringify({v:1,P:{...P},scenario:curScenario,era:curEra,auto:autoMode,realMode,snap:enc,savedAt:Date.now()});
   }
   function deserSnap(str){
     const d=JSON.parse(str);
@@ -1044,6 +1080,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       for(const [id,v] of Object.entries(map)){const el3=$(id);el3.value=v;el3.dispatchEvent(new Event('input'));}
       applyingScn=false;Object.assign(P,d.P);
       if(d.auto!==autoMode)$('#modeSeg').querySelector(`[data-m="${d.auto?'auto':'manual'}"]`).click();
+      setRealMode(!!d.realMode);
       restoreSnap(o);runRecorded=!!outcome;
       $('#banner').style.display='none';
       fullRender();
@@ -1052,8 +1089,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   }
   // ---- 🔗 URL 재현 공유 ----
   function buildShareHash(){
-    const p=['beta','kappa','tinc','zlife','alpha','atotal','kland','z0'].map(k=>P[k]).join(',');
-    return `#s=${seedUsed}&sc=${curScenario}&era=${curEra}&m=${autoMode?'a':'m'}&p=${p}`;
+    const p=['beta','kappa','tinc','zlife','alpha','atotal','kland','z0','ifr','epre','imm','vesc'].map(k=>P[k]).join(',');
+    return `#s=${seedUsed}&sc=${curScenario}&era=${curEra}&m=${autoMode?'a':'m'}&r=${realMode?1:0}&p=${p}`;
   }
   function parseShareHash(){
     if(!location.hash||location.hash.length<3)return null;
@@ -1061,7 +1098,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       const q=Object.fromEntries(location.hash.slice(1).split('&').map(x=>x.split('=')));
       if(!q.s)return null;
       const pv=(q.p||'').split(',').map(Number);
-      return {seed:+q.s,sc:q.sc||'custom',era:q.era||'modern',auto:q.m!=='m',pv};
+      return {seed:+q.s,sc:q.sc||'custom',era:q.era||'modern',auto:q.m!=='m',real:q.r==='1',pv};
     }catch{return null;}
   }
   // 과거 예측들의 30일 후 상대 오차 중앙값
@@ -1122,7 +1159,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         rngA=(snap.rngA+Math.imul(0x9E3779B9,k+1))|0;
         let g2=0;
         while(!outcome&&g2++<2400)stepDay();
-        let a=0;for(const i of playIdx)a+=S[i]+V[i];
+        let a=0;for(const i of playIdx)a+=S[i]+V[i]+(realMode?E[i]+Z[i]:0);
         res.push({out:outcome?outcome.type:'ongoing',day:outcome?outcome.day:snap.day+2400,alive:a});
       }
     };
@@ -1217,8 +1254,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(ctryDead(i)){row('상태','💀 붕괴');row('사망',fmtKo(R[i]+F[i]));}
     else if(shown){
       row('감염률',(Z[i]/c.pop*100).toFixed(Z[i]/c.pop<0.01?2:1)+'%');
-      row('생존자',fmtKo(S[i]+V[i]));row('좀비',fmtKo(Z[i]));
-    } else {row('인구',fmtKo(c.pop));row('상태',ctryContained.has(i)?'🛡 진압됨':'이상 없음');}
+      row('생존자',fmtKo(S[i]+V[i]));row(T('좀비','감염자'),fmtKo(Z[i]));
+    } else {row('인구',fmtKo(c.pop));row('상태',ctryContained.has(i)?T('🛡 진압됨','🛡 종식'):'이상 없음');}
     for(const eF of effects)if(eF.ci===i){
       const d=document.createElement('div');d.className='h';
       d.textContent=`${ACTIONS[eF.type].ic} ${ACTIONS[eF.type].nm} D-${eF.endsDay-day}`;mapTT.appendChild(d);
@@ -1286,9 +1323,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       grid.appendChild(l);grid.appendChild(v2);
     };
     if(shown||ctryDead(i)){
-      cell('생존자',fmtKo(S[i]+V[i]),C.S);cell('좀비',fmtKo(Z[i]),C.Z);
+      cell('생존자',fmtKo(S[i]+V[i]),C.S);cell(T('좀비','감염자'),fmtKo(Z[i]),C.Z);
       cell('사망',fmtKo(R[i]+F[i]),C.R);cell('잠복 감염(추정)',fmtKo(E[i]));
-      cell('백신 접종',fmtKo(V[i]));cell('인구',fmtKo(ctry[i].pop));
+      cell(T('백신 접종','면역 보유'),fmtKo(V[i]));cell('인구',fmtKo(ctry[i].pop));
     } else {cell('인구',fmtKo(c.pop),C.S);cell('공식 보고','없음',C.Z);}
     cpanel.appendChild(grid);
     if(!shown&&!ctryDead(i)){
@@ -1444,15 +1481,15 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     let vw=0,infN=0,deadN=0,ew=0,rz=0,fw=0;
     for(const i of playIdx){vw+=V[i];ew+=E[i];rz+=R[i];fw+=F[i];if(revealed[i]&&Z[i]>=1)infN++;if(ctryDead(i))deadN++;}
     $('#tS').textContent=fmtKo(a);
-    $('#tSn').textContent=vw>0?`백신 접종 ${fmtKo(vw)}`:`전체 ${fmtKo(NW)} 중`;
+    $('#tSn').textContent=vw>0?`${T('백신 접종','면역 보유')} ${fmtKo(vw)}`:`전체 ${fmtKo(NW)} 중`;
     $('#tZ').textContent=fmtKo(z);
     $('#tZn').textContent=`감염 확인 ${infN}/172 · 잠복 ${fmtKo(ew)}`;
     $('#tR').textContent=fmtKo(r);
-    $('#tRn').textContent=`좀비 제거 ${fmtKo(rz)} · 희생 ${fmtKo(fw)}${deadN?` · 붕괴 ${deadN}곳`:''}${variants.length?` · 변이 ${variants.length}종`:''}`;
+    $('#tRn').textContent=realMode?`치명률 ${(P.ifr*100).toFixed(1)}%${deadN?` · 붕괴 ${deadN}곳`:''}${variants.length?` · 변이 ${variants.length}종`:''}`:`좀비 제거 ${fmtKo(rz)} · 희생 ${fmtKo(fw)}${deadN?` · 붕괴 ${deadN}곳`:''}${variants.length?` · 변이 ${variants.length}종`:''}`;
     const tp=$('#tPred');
     if(outcome){
       if(outcome.type==='win')badgeHTML(tp,C.good,'🛡','진압 성공',`D+${nf.format(outcome.day)}에 전 세계 좀비 소탕 · 생존 ${fmtKo(outcome.alive)}`);
-      else if(outcome.type==='dark')badgeHTML(tp,C.warn,'🌑','암흑의 시대',`D+${nf.format(outcome.day)} · 10년째 계속되는 공존 · 생존 ${fmtKo(outcome.alive)}`);
+      else if(outcome.type==='dark')badgeHTML(tp,C.warn,'🌑',T('암흑의 시대','엔데믹'),`D+${nf.format(outcome.day)} · ${T('10년째 계속되는 공존','풍토병으로 정착')} · 생존 ${fmtKo(outcome.alive)}`);
       else badgeHTML(tp,C.crit,'🧟','인류 전멸',`D+${nf.format(outcome.day)} · 마지막 생존자 소멸`);
       return;
     }
@@ -1627,10 +1664,10 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const sum=el2('div','an-grid');
     const tile=(label,val,note)=>{const t2=el2('div','tile card',sum);
       el2('div','label',t2,label);el2('div','value',t2,val);if(note)el2('div','note',t2,note);};
-    tile('결과',outcome?(outcome.type==='win'?(rate>=0.95?'🏆 완벽한 방어':rate>=0.45?'🛡 상처뿐인 승리':'🕯 폐허 속의 생존'):outcome.type==='dark'?'🌑 암흑의 시대':'🧟 인류 전멸'):'⏳ 진행 중',`D+${nf.format(day)} · 발생지 ${ctry[originIdx].name}`);
+    tile('결과',outcome?(outcome.type==='win'?(rate>=0.95?'🏆 완벽한 방어':rate>=0.45?'🛡 상처뿐인 승리':'🕯 폐허 속의 생존'):outcome.type==='dark'?T('🌑 암흑의 시대','🦠 엔데믹'):'🧟 인류 전멸'):'⏳ 진행 중',`D+${nf.format(day)} · 발생지 ${ctry[originIdx].name}`);
     tile('최종 생존',fmtKo(alive),`인류의 ${(rate*100).toFixed(1)}%`);
     tile('총 사망',fmtKo(hist.R[n]),`좀비 제거 ${fmtKo(rz)} · 희생 ${fmtKo(fw2)}`);
-    tile('좀비 정점',fmtKo(peakZ),`D+${nf.format(peakD)}`);
+    tile(T('좀비 정점','감염 정점'),fmtKo(peakZ),`D+${nf.format(peakD)}`);
     tile('감염 경험',`${evN}/172개국`,`붕괴 ${ctryFallen.size}곳 · 첫 확인 ${firstRevealDay>=0?'D+'+nf.format(firstRevealDay):'없음'}`);
     tile('변이',variants.length?`${variants.length}종`:'없음',variants.map(x=>x.name+(x.trait==='fast'?'🏃':x.trait==='cold'?'❄️':x.trait==='stealth'?'🕶':'')).join(' · ')||'출현 전 종결');
     tile('백신',vacDoneDay>=0?`D+${nf.format(vacDoneDay)} 완성`:'미완성',vac.deployed?`최종 효율 ${Math.round(vac.eff*100)}%`:`연구 ${vac.prog}%`);
@@ -1716,7 +1753,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(top12.length){
       const mcard=el2('div','card an-sec');
       el2('div','panel-title',mcard,'최다 피해국 — 국가별 궤적');
-      el2('div','panel-sub',mcard,'파랑 = 생존자 · 주황 = 좀비 (각국 인구 대비 · 5일 간격 표본)');
+      el2('div','panel-sub',mcard,T('파랑 = 생존자 · 주황 = 좀비 (각국 인구 대비 · 5일 간격 표본)','파랑 = 생존자 · 주황 = 감염자 (각국 인구 대비 · 5일 간격 표본)'));
       const mg=el2('div','mini-grid',mcard);
       for(const i of top12){
         const box=el2('div','mini',mg);
@@ -1832,7 +1869,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       const n2=hist.A.length-1;bA.push(hist.A[n2]);bZ.push(hist.Z[n2]);
     }
     const bOut=outcome?{...outcome}:null,bEnd=day;
-    let aliveB=0;for(const i of playIdx)aliveB+=S[i]+V[i];
+    let aliveB=0;for(const i of playIdx)aliveB+=S[i]+V[i]+(realMode?E[i]+Z[i]:0);
     autoMode=autoSave;
     restoreSnap(cur);mcMode=false;
     branchResult={t0:base.day,policy,A:bA,Z:bZ,endDay:bEnd,outcome:bOut,aliveEnd:aliveB};
@@ -1853,7 +1890,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         P.beta=b2;P.kappa=k2;
         restart(90000+ci*7+r2);
         let g2=0;while(!outcome&&g2++<CAP)stepDay();
-        let a=0;for(const i of playIdx)a+=S[i]+V[i];
+        let a=0;for(const i of playIdx)a+=S[i]+V[i]+(realMode?E[i]+Z[i]:0);
         sum+=a/NW;
       }
       res.push({beta:b2,kappa:k2,alive:sum/REPS});
@@ -2001,7 +2038,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       r2.setAttribute('x',x);r2.setAttribute('y',6);r2.setAttribute('width',12);r2.setAttribute('height',3);
       r2.setAttribute('rx',1.5);r2.setAttribute('fill',color);svg.appendChild(r2);
       tx(x+16,10,label,'start',C.sec,10);};
-    key(m.l,C.Z,'신규 감염');key(m.l+80,C.R,'좀비 제거');key(m.l+160,C.muted,'보고(지연·과소)');
+    key(m.l,C.Z,'신규 감염');key(m.l+80,C.R,T('좀비 제거','격리·회복'));key(m.l+160,C.muted,'보고(지연·과소)');
     return svg;
   }
   function miniChart(i){
@@ -2042,12 +2079,12 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(outcome.type==='win'){
       const rate=outcome.alive/NW;
       $('#bnTitle').textContent=rate>=0.95?'🏆 완벽한 방어':rate>=0.45?'🛡 상처뿐인 승리':'🕯 폐허 속의 생존';
-      $('#bnBody').textContent=`D+${nf.format(outcome.day)}, 전 세계 좀비가 소탕되었습니다. 생존 ${fmtKo(outcome.alive)} (${(rate*100).toFixed(1)}%) · 사망 ${fmtKo(NW-outcome.alive)}.`;
+      $('#bnBody').textContent=`D+${nf.format(outcome.day)}, ${T('전 세계 좀비가 소탕되었습니다','바이러스가 지구상에서 종식되었습니다')}. 생존 ${fmtKo(outcome.alive)} (${(rate*100).toFixed(1)}%) · 사망 ${fmtKo(NW-outcome.alive)}.`;
       logAdd('🏆','<b>승리</b> — 전 세계 좀비 소탕 완료');
     } else if(outcome.type==='dark'){
-      $('#bnTitle').textContent='🌑 암흑의 시대';
-      $('#bnBody').textContent=`D+${nf.format(outcome.day)} — 10년이 지나도 전쟁은 끝나지 않았습니다. 인류 ${(outcome.alive/NW*100).toFixed(1)}%가 요새 속에서 버티며, 좀비와의 공존이 일상이 되었습니다.`;
-      logAdd('🌑','<b>암흑의 시대</b> — 전쟁은 일상이 되었습니다');
+      $('#bnTitle').textContent=T('🌑 암흑의 시대','🦠 엔데믹');
+      $('#bnBody').textContent=realMode?`D+${nf.format(outcome.day)} — 바이러스는 사라지지 않았습니다. 인류 ${(outcome.alive/NW*100).toFixed(1)}%와 함께, 질병은 일상이 되었습니다.`:`D+${nf.format(outcome.day)} — 10년이 지나도 전쟁은 끝나지 않았습니다. 인류 ${(outcome.alive/NW*100).toFixed(1)}%가 요새 속에서 버티며, 좀비와의 공존이 일상이 되었습니다.`;
+      logAdd('🌑',T('<b>암흑의 시대</b> — 전쟁은 일상이 되었습니다','<b>엔데믹 전환</b> — 바이러스는 일상이 되었습니다'));
     } else {
       $('#bnTitle').textContent='🧟 인류 전멸';
       $('#bnBody').textContent=`D+${nf.format(outcome.day)}, 마지막 생존자가 사라졌습니다. 인류는 기록으로만 남게 되었습니다.`;
@@ -2111,8 +2148,15 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     sel.addEventListener('change',()=>{P.origin=sel.value;});
     const scn=$('#c-scn');
     for(const [k,sc] of Object.entries(SCENARIOS)){
+      if(sc.real)continue;
       const o=document.createElement('option');o.value=k;o.textContent=sc.nm;scn.appendChild(o);
     }
+    const ogR=document.createElement('optgroup');ogR.label='🦠 실제 병원체 (현실 모드)';
+    for(const [k,sc] of Object.entries(SCENARIOS)){
+      if(!sc.real)continue;
+      const o=document.createElement('option');o.value=k;o.textContent=sc.nm;ogR.appendChild(o);
+    }
+    scn.appendChild(ogR);
     scn.addEventListener('change',()=>{applyScenario(scn.value);syncPresetBtn();});
     rebuildUserPresets();
     const eraSel=$('#c-era');
@@ -2121,13 +2165,32 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     }
     eraSel.addEventListener('change',()=>applyEra(eraSel.value));
   }
+  function applyTerms(){
+    const t=(id,z,r)=>{const el2=$(id);if(el2)el2.textContent=realMode?r:z;};
+    t('#lbBeta','전파율 β','전파율 β');
+    t('#lbKappa','반격 제거율 κ','격리·치료율 κ');
+    t('#lbZlife','좀비 수명','감염 기간');
+    t('#lbZ0','초기 좀비','초기 감염자');
+    t('#lbTileZ','좀비','감염자');
+    t('#lbTileR','사망(제거)','사망');
+    t('#lbMapSub','색 = 인구 대비 좀비 비율','색 = 인구 대비 감염자 비율');
+    t('#lbLgT','감염률 (인구 대비 좀비)','감염률 (인구 대비 감염자)');
+    t('#lbLgZ','좀비','감염자');
+    t('#lbTtZ','좀비','감염자');
+  }
+  function setRealMode(on){
+    if(on===realMode)return;
+    realMode=on;
+    ACTIONS=on?ACTIONS_R:ACTIONS_Z;
+    applyTerms();
+  }
   function getUserPresets(){try{return JSON.parse(localStorage.getItem('zs_presets')||'{}');}catch{return {};}}
   function rebuildUserPresets(){
     const scn=$('#c-scn');
-    let og=scn.querySelector('optgroup');if(og)og.remove();
+    let og=scn.querySelector('optgroup[data-up]');if(og)og.remove(); // 🦠 병원체 optgroup은 건드리지 않는다
     const ps=getUserPresets(),names=Object.keys(ps);
     if(!names.length)return;
-    og=document.createElement('optgroup');og.label='내 프리셋';
+    og=document.createElement('optgroup');og.label='내 프리셋';og.dataset.up='1';
     for(const nm2 of names){const o=document.createElement('option');o.value='u:'+nm2;o.textContent='☆ '+nm2;og.appendChild(o);}
     scn.appendChild(og);
   }
@@ -2148,6 +2211,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       setr('#c-beta',p2.beta);setr('#c-kappa',p2.kappa);setr('#c-tinc',p2.tinc);setr('#c-zlife',p2.zlife);
       setr('#c-air',p2.atotal/1e6);setr('#c-land',p2.kland);setr('#c-z0',p2.z0);
       P.origin=p2.origin;$('#c-origin').value=p2.origin;
+      P.ifr=p2.ifr??0.01;P.epre=p2.epre??0;P.imm=p2.imm??3650;P.vesc=p2.vesc??0.35;
+      setRealMode(!!p2.real);
       applyingScn=false;
       running=false;syncStart();$('#banner').style.display='none';restart();
       return;
@@ -2155,7 +2220,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(!SCENARIOS[key])return;
     curScenario=key;
     const sc=SCENARIOS[key];
-    $('#scnDesc').textContent=sc.ds?`🎬 ${sc.nm} — ${sc.ds}`:'';
+    if(key!=='custom')setRealMode(!!sc.real);
+    $('#scnDesc').textContent=sc.ds?(sc.real?`🦠 ${sc.nm} — ${sc.ds} 〔문헌 기반 교육용 단순화 모델 — 실제 방역 판단에 사용 금지〕`:`🎬 ${sc.nm} — ${sc.ds}`):'';
     $('#c-scn').value=key;
     if(key==='custom')return;
     applyingScn=true;
@@ -2163,6 +2229,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     setr('#c-beta',sc.beta);setr('#c-kappa',sc.kappa);setr('#c-tinc',sc.tinc);setr('#c-zlife',sc.zlife);setr('#c-air',sc.atotal/1e6);
     setr('#c-land',sc.kland);setr('#c-z0',sc.z0);
     P.zlife=sc.zlife;P.vacStep=sc.vacStep;
+    P.ifr=sc.ifr??0.01;P.epre=sc.epre??0;P.imm=sc.imm??3650;P.vesc=sc.vesc??0.35;
     P.origin=sc.origin;$('#c-origin').value=sc.origin;
     applyingScn=false;
     running=false;syncStart();$('#banner').style.display='none';restart();
@@ -2191,7 +2258,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const nm2=prompt('프리셋 이름을 입력하세요','나의 시나리오');
     if(!nm2)return;
     const ps=getUserPresets();
-    ps[nm2]={beta:P.beta,kappa:P.kappa,tinc:P.tinc,zlife:P.zlife,atotal:P.atotal,kland:P.kland,z0:P.z0,origin:P.origin};
+    ps[nm2]={beta:P.beta,kappa:P.kappa,tinc:P.tinc,zlife:P.zlife,atotal:P.atotal,kland:P.kland,z0:P.z0,origin:P.origin,ifr:P.ifr,epre:P.epre,imm:P.imm,vesc:P.vesc,real:realMode};
     localStorage.setItem('zs_presets',JSON.stringify(ps));
     rebuildUserPresets();$('#c-scn').value='u:'+nm2;curScenario='u:'+nm2;syncPresetBtn();
     logAdd('☆',`프리셋 "${nm2}" 저장 — 시나리오 목록에서 불러올 수 있어요`);
@@ -2341,15 +2408,16 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(sh2){
       applyEra(sh2.era);        // (restart 포함 — 아래에서 시드로 다시 시작)
       applyScenario(sh2.sc);
-      if(sh2.pv.length===8&&sh2.pv.every(v=>isFinite(v))){
-        const ids=['#c-beta','#c-kappa','#c-tinc','#c-zlife',null,'#c-air','#c-land','#c-z0'];
-        const keys=['beta','kappa','tinc','zlife','alpha','atotal','kland','z0'];
+      if((sh2.pv.length===8||sh2.pv.length===11||sh2.pv.length===12)&&sh2.pv.every(v=>isFinite(v))){
+        const ids=['#c-beta','#c-kappa','#c-tinc','#c-zlife',null,'#c-air','#c-land','#c-z0',null,null,null,null];
+        const keys=['beta','kappa','tinc','zlife','alpha','atotal','kland','z0','ifr','epre','imm','vesc'];
         applyingScn=true;
-        keys.forEach((k,ix)=>{P[k]=sh2.pv[ix];
+        keys.forEach((k,ix)=>{if(ix>=sh2.pv.length)return;P[k]=sh2.pv[ix];
           if(ids[ix]){const el3=$(ids[ix]);el3.value=k==='atotal'?sh2.pv[ix]/1e6:sh2.pv[ix];el3.dispatchEvent(new Event('input'));P[k]=sh2.pv[ix];}});
         applyingScn=false;
       }
       if(!sh2.auto)$('#modeSeg').querySelector('[data-m="manual"]').click();
+      setRealMode(sh2.real);
       restart(sh2.seed);
     } else restart();
   }

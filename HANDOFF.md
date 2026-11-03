@@ -1,6 +1,6 @@
 # HANDOFF — 좀비 바이러스 확산 시뮬레이션 (v1 + v2)
 
-_갱신: 2026-08-10 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` (2026-11-03 `~/Desktop/시뮬레이션/zombie-sim/`에서 이동) · 원격: https://github.com/Gamchilmat96/sim_project_
+_갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` · 원격: https://github.com/Gamchilmat96/sim_project_
 
 ## 1. 현재 상태
 
@@ -14,11 +14,22 @@ _갱신: 2026-08-10 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` (
   - 🔭 현실 관측(기본 ON): 보고 지연·과소 보고 데이터로만 적합 (실제 β 0.34 → β̂ 0.167 편향이 의도된 교훈)
   - 분석 탭: 확산 리플레이 히트맵(시간 슬라이더), 에피 커브, 연대기, 스몰 멀티플, 🧪 상전이 실험(β×κ 격자), CSV/JSON 내보내기, 지난 판 기록
   - 결말 6종(🏆🛡🕯🤫🌑🧟, 패배 = 생존자 0명) · URL 시드 재현 공유 · 💾 저장/📂 불러오기 · 워커 틱(백그라운드 지속) · 온보딩
-- **아티팩트 배포**: https://claude.ai/code/artifact/7652f216-5fbc-423c-9c25-d2cf800d7aff (비공개, `counterfactual-final` 버전)
+- **아티팩트 배포**: https://claude.ai/code/artifact/7652f216-5fbc-423c-9c25-d2cf800d7aff (비공개)
+- **🦠 현실 모드 (2026-11-03 추가)**: 실제 병원체 프리셋 6종(코로나 원형·오미크론·1918 독감·홍역·에볼라·사스).
+  같은 엔진의 감염병 해석 — 용어 교체(감염자·격리·치료율·감염 기간·엔데믹), 회복→면역(V)·면역 소멸·재감염,
+  발증 전 전파(`epre`), IFR 사망 + 재감염 중증 보호, 변이 항원성(`vesc`, 홍역·에볼라·사스는 면역 회피 없음),
+  현실 모드 생존 집계에 E·Z 포함. 디스클레이머 고정 표기. 상세: CHANGELOG 2026-11-03, README "🦠 현실 모드" 절.
 
-## 2. 이번 세션(2026-08-10) 변경 사항
+## 2. 이번 세션(2026-11-03) 변경 사항
 
-사실상 프로젝트 전체가 이 세션의 산출물. 주요 파일:
+- `world.html` — 🦠 현실 모드 전체 (위 요약 · CHANGELOG 상세). 좀비 모드 회귀 무변화 실측(기본 win@536 생존 101.4%).
+- `CHANGELOG.md`·`TROUBLESHOOTING.md` 신설 (DEV_PROCESS §0 적용 시작, 문제 5건 기록)
+- `README.md` — "🦠 현실 모드" 절(프리셋 전거 표 + 한계) 추가
+- `.gitignore` — `.claude/` 추가 · `.claude/launch.json`(비추적) — 서버 포트 **8932**로 이동
+
+## 직전 세션(2026-08-10) 변경 사항
+
+사실상 프로젝트 전체가 그 세션의 산출물. 주요 파일:
 
 - `world.html` — v2 본체 (WORLD 지도 데이터 ~115KB 임베드 포함)
 - `tools/build-world-data.mjs` — 지도 데이터 빌드 (world-atlas 110m + world-countries + World Bank 인구 join, 반자오선 분할·NE1 투영·국경 인접·항공 중력 링크). **restcountries API는 폐기됨 — 사용 금지**
@@ -28,9 +39,10 @@ _갱신: 2026-08-10 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` (
 
 ## 3. 다음 할 일 (우선순위 순)
 
-1. (선택) 코드 정비 패스 — 2,360줄 단일 파일의 섹션 재정리. 기능 추가 전에 권장
-2. (아이디어 백로그) 도시 단위 해상도 · 실험 모드 축 자유선택+CSV · 여러 판 자동 배치 통계 · 웹 워커 완전 분리
-3. GitHub 저장소 정리 — 이슈/설명 추가 등 (2026-08-10 최초 푸시)
+1. (선택) 현실 모드 밸런스 미세조정 — 코로나 10년 누적 사망 12%는 실제(1% 미만)보다 높음(치료제·개량 백신의 중증 억제 부재). 교육용 한계로 README에 문서화된 상태 — 줄이려면 백신 개량 시 IFR 감소 항 추가 검토
+2. (선택) 코드 정비 패스 — ~2,450줄 단일 파일의 섹션 재정리. 기능 추가 전에 권장
+3. (아이디어 백로그) 도시 단위 해상도 · 실험 모드 축 자유선택+CSV · 여러 판 자동 배치 통계 · 웹 워커 완전 분리
+4. GitHub 저장소 정리 — 이슈/설명 추가 등
 
 ## 4. 주의할 점
 
@@ -38,16 +50,20 @@ _갱신: 2026-08-10 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` (
 - **브라우저 패널이 백그라운드면 rAF·타이머가 절전됨** — 헤드리스 검증은 콘솔 API(`pandemicSim.runDays` 등)로. 워커 틱 덕에 실제 시뮬은 백그라운드에서도 진행됨
 - **URL 해시만 바꾸면 리로드가 안 됨** — 재현 링크 테스트 시 쿼리 파라미터를 붙여 강제 리로드
 - 스냅샷/복원(`snapshot()`/`restoreSnap()`)이 운명 분포·상전이 실험·반사실 분기의 공통 기반 — **새 상태 변수를 추가하면 반드시 스냅샷에도 추가**할 것 (과거에 seedUsed 누락 버그 있었음)
-- 밸런스 수치는 전부 하네스 실측 기반 — 파라미터 변경 시 무개입/자동 기본/부산행/나는전설이다 4종은 재측정 권장
+- 밸런스 수치는 전부 하네스 실측 기반 — 파라미터 변경 시 무개입/자동 기본/부산행/나는전설이다 4종 + 병원체 6종 재측정 권장
 - 차트/지도 팔레트는 dataviz 검증 통과본 — 색 변경 시 재검증 필요
+- **현실 모드 집계 의미가 다르다** — 생존에 E·Z 포함(12지점, TROUBLESHOOTING #2 목록). 히트맵 계열(ha5/hcA/pcA)은 E만 더함(사망=1-(alive+Z)/pop이라 Z 중복 금지). 병원체 프리셋 추가 시 `vesc` 명시 필수
+- **콘솔 검증 함정**: `scenario('custom')`은 직전 시나리오의 P·realMode를 상속 — 좀비 회귀 테스트는 리로드 후 기본 상태에서 (TROUBLESHOOTING #5)
+- `rebuildUserPresets`는 `optgroup[data-up]`만 제거 — 셀렉트에 그룹 추가 시 마커 규칙 유지 (TROUBLESHOOTING #3)
 
 ## 5. 검증 방법
 
 ```bash
 # 서버 (launch.json "zombie-sim" 또는):
-python3 -m http.server 8931 --directory ~/Desktop/Claude_Project/personal/zombie-sim
+python3 -m http.server 8932 --directory ~/Desktop/Claude_Project/personal/zombie-sim
 ```
-- v2: http://localhost:8931/world.html → ▶ 시작 → 확산·예측·자동 대응 확인, 콘솔 에러 0 확인
+- v2: http://localhost:8932/world.html → ▶ 시작 → 확산·예측·자동 대응 확인, 콘솔 에러 0 확인
 - 헤드리스: 콘솔에서 `pandemicSim.scenario('busan'); pandemicSim.restart(21); pandemicSim.runDays(3700)` → win/lose/dark 결말 확인
+- 현실 모드: `pandemicSim.scenario('covid'); pandemicSim.restart(1963); pandemicSim.runDays(3650)` → 엔데믹(dark) · 사스는 win(박멸) 확인, 라벨이 감염자/격리·치료율로 바뀌는지 확인
 - 밸런스: `tools/balance-harness.js` 콘솔 붙여넣기
 - 데이터 재빌드(선택): `node tools/build-world-data.mjs` → assert 전체 통과 + `tools/inspect.svg` 육안 확인

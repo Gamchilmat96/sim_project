@@ -136,6 +136,20 @@
   };
 
   window.__qaExport=function(from,to){return JSON.stringify(window.__qa.results.slice(from,to));};
+  // 파라미터 튜닝용 부분 실행 — 전체 매트릭스와 별개로 지정 조합만 돌린다
+  window.__qaSpot=function(bots,scs,seeds){
+    PS().qaMode(true);
+    const out=[];let lastSc=null;
+    for(const sc of scs){PS().scenario(sc);lastSc=sc;
+      for(const bot of bots)for(const seed of seeds)out.push(runOne(bot,sc,seed));}
+    PS().qaMode(false);
+    const med=a=>{a=[...a].sort((x,y)=>x-y);return a[Math.floor(a.length/2)];};
+    const agg={};
+    for(const r of out){const k=r.sc+'|'+r.bot;(agg[k]=agg[k]||[]).push(r);}
+    const sum={};
+    for(const k in agg)sum[k]=med(agg[k].map(r=>r.aliveP)).toFixed(1)+'% '+agg[k].filter(r=>r.out==='win').length+'/'+agg[k].length+'승';
+    return {sum,bad:out.filter(r=>r.inv).length};
+  };
   window.__qaSummary=function(){
     const R=window.__qa.results,agg={};
     for(const r of R){

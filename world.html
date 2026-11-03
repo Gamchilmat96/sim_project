@@ -218,7 +218,7 @@
       <div class="seg-group" id="speedSeg">
         <button class="seg" data-s="0.5">½×</button><button class="seg on" data-s="1">1×</button><button class="seg" data-s="2">2×</button><button class="seg" data-s="4">4×</button>
       </div>
-      <div class="seg-group" id="modeSeg" title="자동: 각국 정부가 스스로 대응 (관전·예측 모드) / 수동: 대응 포인트로 직접 개입 (게임 모드)">
+      <div class="seg-group" id="modeSeg" title="자동: 각국 정부와 WHO가 스스로 대응 (관전·예측 모드) / 수동: 각국은 자국을 지키지만 WHO가 없다 — 백신 연구·개량과 집중 개입은 당신 몫 (게임 모드)">
         <button class="seg on" data-m="auto">🤖 자동 대응</button><button class="seg" data-m="manual">🎮 수동 개입</button>
       </div>
       <div class="stat">경과<b id="hudDay">D+0</b></div>
@@ -478,6 +478,11 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   };
   let ACTIONS=ACTIONS_Z;
   const VAC_COST=50, VAC_CD=20, VAC_CAP=60e6, VAC_RAMP=120; // 생산능력 6천만 도즈/일까지 120일 램프
+  // 수동 모드 = "WHO의 부재": 각국 정부는 자동 모드와 똑같이 자국을 지키지만, 백신 연구·개량과
+  // 국제 공조(집중 개입)는 플레이어 몫이다. GOV/DELAY는 튜닝 손잡이(1.0 = 자동과 동등) —
+  // 봇 QA 결과 0.55~0.7 구간은 부산행·월드워Z가 상전이 절벽 아래로 떨어져 전 전략 폐허(qa/ 참조).
+  const MANUAL_GOV=1.0, MANUAL_DELAY=1.0, MANUAL_RP0=150;
+  const govF=i=>effGov[i]*(autoMode?1:MANUAL_GOV);
   const HRING=120; // 국가별 스파크라인 링 버퍼(일)
 
   // ---- 시뮬레이션 상태 ----
@@ -520,7 +525,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   function restart(seed){
     seedUsed=seed>>>0||((Math.random()*2**32)>>>0);
     rngA=seedUsed|0;spare=null;
-    day=0;outcome=null;pred=null;effects=[];rp=60;vac={prog:0,lastBuy:-99,deployed:false,eff:0};
+    day=0;outcome=null;pred=null;effects=[];rp=autoMode?60:MANUAL_RP0;vac={prog:0,lastBuy:-99,deployed:false,eff:0};
     variants=[];betaMul=1;F.fill(0);
     hist={A:[],Z:[],R:[],V:[]};evXI=[];evXK=[];evInf=[];evKill=[];
     repInf=[];repKill=[];obsU=0.55+0.35*rand();
@@ -577,7 +582,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       if(day>=e.endsDay){if(!e.auto)logAdd('⏳',`${ctry[e.ci].name} — ${ACTIONS[e.type].nm} 종료`);continue;}
       keep.push(e);activeKeys.add(e.type+':'+e.ci);
       if(e.type==='military'&&day<e.startDay)continue; // 준비 중
-      const f=e.auto?effGov[e.ci]:1; // 자동 정책은 집행력만큼만 듣는다 (수동 개입은 항상 100%)
+      const f=e.auto?govF(e.ci):1; // 자동 정책은 집행력만큼(수동 모드에선 그 55%), 수동 개입은 항상 100%
       if(e.type==='border')landMul[e.ci]=Math.min(landMul[e.ci],1-0.85*f);
       else if(e.type==='airport')airMul[e.ci]=Math.min(airMul[e.ci],1-0.95*f);
       else if(e.type==='dist')distMul[e.ci]=Math.min(distMul[e.ci],e.auto?1-0.35*f:0.5);
@@ -768,7 +773,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     let aliveW=0,zW=0,eW=0;revInfN=0;
     for(const i of playIdx){aliveW+=S[i]+V[i]+(realMode?E[i]+Z[i]:0);zW+=Z[i];eW+=E[i];if(revealed[i]&&Z[i]>=1)revInfN++;}
     rp=Math.min(400,rp+2+8*aliveW/NW);
-    if(autoMode)autoRespond();
+    autoRespond(); // 수동 모드에서도 각국의 '소극 대응'은 돈다 (WHO 백신만 자동 전용)
     // 기록
     pushHist();ringStore();
     if(day%5===0){const si5=day/5;
@@ -797,8 +802,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const key=type+':'+i;
     if(!cond){sched.delete(key);return;}
     if(activeKeys.has(key)){sched.delete(key);return;}
-    if(!sched.has(key)){ // 첫 발동은 지연만큼, 재발동은 절반의 정책 공백 후
-      sched.set(key,day+(everFired.has(key)?Math.ceil(reactDelay[i]/2):reactDelay[i]));return;
+    if(!sched.has(key)){ // 첫 발동은 지연만큼, 재발동은 절반의 정책 공백 후 (수동 모드는 정부가 굼떠 1.5배)
+      sched.set(key,day+Math.ceil((everFired.has(key)?Math.ceil(reactDelay[i]/2):reactDelay[i])*(autoMode?1:MANUAL_DELAY)));return;
     }
     if(day>=sched.get(key)){
       sched.delete(key);
@@ -830,6 +835,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       else logAdd(A2.ic,`<b>${ctry[arr[0]].name}</b> 외 ${arr.length-1}개국 — ${A2.nm} 자동 발동`);
     }
     autoLogBuf.clear();
+    if(!autoMode)return; // 수동 모드: WHO 백신 연구·개량은 플레이어의 투자 몫
     // WHO 개량 연구: 변이로 효율이 떨어지면 자동 부스터 개발
     if(vac.deployed&&vac.eff<0.9&&day-vac.lastBuy>=VAC_CD){
       vac.lastBuy=day;vac.eff=Math.min(0.92,vac.eff+0.12);
@@ -861,7 +867,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       for(const e of effects){
         if(tau>=e.endsDay&&!e.auto)continue;
         if(e.type==='military'&&tau<e.startDay)continue;
-        const f=e.auto?effGov[e.ci]:1;
+        const f=e.auto?govF(e.ci):1;
         if(e.type==='border')lM[e.ci]=Math.min(lM[e.ci],1-0.85*f);
         else if(e.type==='airport')aM[e.ci]=Math.min(aM[e.ci],1-0.95*f);
         else if(e.type==='dist')dM[e.ci]=Math.min(dM[e.ci],e.auto?1-0.35*f:0.5);
@@ -924,7 +930,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       for(const e of effects){
         if(tau>=e.endsDay&&!e.auto)continue; // 자동 발동 정책은 위협이 있는 한 스스로 갱신되므로 만료 없음으로 취급
         if(e.type==='military'&&tau<e.startDay)continue;
-        const f=e.auto?effGov[e.ci]:1;
+        const f=e.auto?govF(e.ci):1;
         if(e.type==='border')lM[e.ci]=Math.min(lM[e.ci],1-0.85*f);
         else if(e.type==='airport')aM[e.ci]=Math.min(aM[e.ci],1-0.95*f);
         else if(e.type==='dist')dM[e.ci]=Math.min(dM[e.ci],e.auto?1-0.35*f:0.5);
@@ -2280,7 +2286,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     autoMode=m;
     for(const s2 of $('#modeSeg').querySelectorAll('.seg'))s2.classList.toggle('on',s2===b);
     logAdd(autoMode?'🤖':'🎮',autoMode?'<b>자동 대응 모드</b> — 각국 정부와 WHO가 스스로 대응합니다'
-                              :'<b>수동 개입 모드</b> — 대응 포인트로 직접 개입하세요');
+                              :'<b>수동 개입 모드</b> — 당신이 WHO입니다. 각국은 자국을 지키지만, 백신 연구와 국제 공조는 당신 몫입니다');
     updateHud();renderPanel();
   });
   $('#ghostChk').addEventListener('change',()=>renderChart());

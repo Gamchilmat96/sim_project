@@ -408,9 +408,11 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     return Math.max(0,Math.round(mean+Math.sqrt(mean)*gauss()));
   }
   function binom(n,p){
+    // 구획엔 소수 꼬리가 남을 수 있다 — 표본을 n으로 클램프해 음수 구획을 막되,
+    // 입력을 floor하면 안 된다 (0.x 잔여가 영원히 전환되지 않아 승리 판정이 막힘)
     if(p<=0||n<=0)return 0; if(p>=1)return n;
     const mean=n*p;
-    if(n<50){let k=0;for(let i=0;i<n;i++)if(rand()<p)k++;return k;}
+    if(n<50){let k=0;for(let i=0;i<n;i++)if(rand()<p)k++;return Math.min(k,n);}
     if(mean<30)return Math.min(n,poisson(mean));
     return Math.min(n,Math.max(0,Math.round(mean+Math.sqrt(mean*(1-p))*gauss())));
   }
@@ -1418,9 +1420,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     else effects.push({type,ci,startDay:day+(A2.prep||0),endsDay:day+(A2.prep||0)+A2.dur});
     actStats[type]++;actStats.rpSpent+=A2.cost;
     logAdd(A2.ic,`<b>${ctry[ci].name}</b> — ${A2.nm} ${ex?'연장':'개시'} (−${A2.cost} RP)`);
-    applyEffects();renderMap();renderPanel();updateHud();
+    applyEffects();if(!mcMode){renderMap();renderPanel();updateHud();} // MC/QA 배치에서는 렌더 생략
   }
-  $('#btnVac').addEventListener('click',()=>{
+  function buyVaccine(){ // 버튼과 콘솔 act('vaccine') 공용 — 버튼 disabled 상태에 의존하지 않는다
     if(outcome||!eraVacOn||rp<VAC_COST||day-vac.lastBuy<VAC_CD)return;
     if(vac.deployed){
       if(vac.eff>=0.92)return;
@@ -1433,7 +1435,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     logAdd('💉',`백신 연구 투자 — 진행 ${vac.prog}%`);
     if(vac.prog>=100){vac.deployed=true;vac.eff=0.92;vacDoneDay=day;for(const i2 of playIdx)vacStart[i2]=day+Math.round((1-effGov[i2])*120+rand()*30);logAdd('🎉','<b>백신 완성!</b> 생산 램프업과 국가별 배포가 시작됩니다');}
     updateHud();
-  });
+  }
+  $('#btnVac').addEventListener('click',buyVaccine);
 
   // ---- 로그 ----
   const logEl=$('#log');
@@ -2389,10 +2392,25 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     fate(K=16){return new Promise(r2=>runFate(K,(k,Kt,res)=>{if(res)r2(res.map(x=>({out:x.out,day:x.day,aliveP:+(x.alive/NW*100).toFixed(1)})));},true));},
     experiment(){return new Promise(r2=>runExperiment((k,K,res)=>{if(res)r2(res.grid.map(c=>({b:c.beta,k:c.kappa,alive:+(c.alive*100).toFixed(1)})));},true));},
     act(type,cc){
+      if(type==='vaccine'){buyVaccine();return vac;}
       const c2=typeof cc==='number'?ctry[cc]:ctry.find(x=>x.cc===cc||x.name===cc);
       if(!c2)return 'no such country';
-      if(type==='vaccine'){$('#btnVac').click();return vac;}
       buyAction(type,c2.i);return effects.filter(e2=>e2.ci===c2.i);
+    },
+    // ---- QA 배치용 (tools/qa-bots.js가 사용) ----
+    qaMode(on){mcMode=!!on;return mcMode;}, // 렌더·배너 억제 — 배치 후 반드시 false로 되돌릴 것
+    qaTick(n,withFit){
+      for(let k=0;k<n;k++){if(!outcome)stepDay();}
+      if(withFit&&!outcome&&day>=10&&day-lastFitD>=3){const f=fit();if(f)pred=f;lastFitD=day;}
+      if(outcome)pred=null;
+      return outcome?outcome.type:null;
+    },
+    qaStats(){
+      let s=0,e=0,z=0,v=0,r=0,f=0,neg=0;
+      for(const i of playIdx){s+=S[i];e+=E[i];z+=Z[i];v+=V[i];r+=R[i];f+=F[i];
+        if(S[i]<0||E[i]<0||Z[i]<0||V[i]<0||R[i]<0||F[i]<0)neg++;}
+      let mz=0;for(let k=0;k<hist.Z.length;k++)if(hist.Z[k]>mz)mz=hist.Z[k];
+      return {S:s,E:e,Z:z,V:v,R:r,F:f,NW,neg,peakZ:mz,rp,vacDoneDay,real:realMode,sc:curScenario,stats:{...actStats}};
     },
     country(cc){
       const c2=typeof cc==='number'?ctry[cc]:ctry.find(x=>x.cc===cc||x.name===cc);

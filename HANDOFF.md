@@ -39,10 +39,11 @@ _갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/`
 
 ## 3. 다음 할 일 (우선순위 순)
 
-1. (선택) 현실 모드 밸런스 미세조정 — 코로나 10년 누적 사망 12%는 실제(1% 미만)보다 높음(치료제·개량 백신의 중증 억제 부재). 교육용 한계로 README에 문서화된 상태 — 줄이려면 백신 개량 시 IFR 감소 항 추가 검토
-2. (선택) 코드 정비 패스 — ~2,450줄 단일 파일의 섹션 재정리. 기능 추가 전에 권장
-3. (아이디어 백로그) 도시 단위 해상도 · 실험 모드 축 자유선택+CSV · 여러 판 자동 배치 통계 · 웹 워커 완전 분리
-4. GitHub 저장소 정리 — 이슈/설명 추가 등
+1. **수동 모드 좀비 밸런스 재조정** — 봇 QA 1,000판 결과, 수동 모드에서 busan·wwz는 전 전략이 생존 0.7% 폐허 승리(자동은 86~106%). 후보: 수동 모드에서도 약한 자동 대응 유지, RP 수입 상향, 또는 난이도 표기. 근거: `qa/bot-qa-summary-2026-11-03.md`
+2. (선택) 현실 모드 밸런스 미세조정 — 코로나 10년 누적 사망 과대(봇 데이터로 재확인: 무개입 6.9% < 자동 14.7% '어중간한 억제의 함정'). 백신 개량 시 IFR 감소 항 추가 검토
+3. (선택) 코드 정비 패스 — ~2,470줄 단일 파일의 섹션 재정리. 기능 추가 전에 권장
+4. (아이디어 백로그) 도시 단위 해상도 · 실험 모드 축 자유선택+CSV · 봇 QA 정기 실행(시드 교체) · 웹 워커 완전 분리
+5. GitHub 저장소 정리 — 웹에서 `outbreak-lab`로 개명(§머리말), 이슈/설명 추가
 
 ## 4. 주의할 점
 
@@ -65,5 +66,6 @@ python3 -m http.server 8932 --directory ~/Desktop/Claude_Project/personal/outbre
 - v2: http://localhost:8932/world.html → ▶ 시작 → 확산·예측·자동 대응 확인, 콘솔 에러 0 확인
 - 헤드리스: 콘솔에서 `pandemicSim.scenario('busan'); pandemicSim.restart(21); pandemicSim.runDays(3700)` → win/lose/dark 결말 확인
 - 현실 모드: `pandemicSim.scenario('covid'); pandemicSim.restart(1963); pandemicSim.runDays(3650)` → 엔데믹(dark) · 사스는 win(박멸) 확인, 라벨이 감염자/격리·치료율로 바뀌는지 확인
+- 봇 QA 1,000판(엔진 수정 후 회귀 검증): **새로 로드한** 콘솔에서 `fetch('/tools/qa-bots.js').then(r=>r.text()).then(eval)` → `__qaInit()` → `__qaStep(50)` 반복 (타임아웃 주의: 병원체 블록은 35판씩) → badSoFar 0 확인. 데이터 기준선: `qa/bot-runs-2026-11-03.json`
 - 밸런스: `tools/balance-harness.js` 콘솔 붙여넣기
 - 데이터 재빌드(선택): `node tools/build-world-data.mjs` → assert 전체 통과 + `tools/inspect.svg` 육안 확인

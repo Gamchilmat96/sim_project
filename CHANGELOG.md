@@ -2,6 +2,20 @@
 
 형식: 무엇이 / 왜 / 기술 상세 (DEV_PROCESS §0). 이 파일은 2026-11-03부터 쓴다 — 그 이전 변경은 README의 섹션별 "(2026-08-10 추가)" 표기와 git 로그가 기록이다.
 
+## 2026-11-03 — 🖥 UI 전면 개편: "세계 방역 상황실"
+
+**무엇이**: 전체 비주얼을 다크 우선 '상황실(situation room)' 디자인으로 교체. IBM Plex Sans KR(UI) + IBM Plex Mono(계기 숫자·타임스탬프·패널 제목) 타이포, 청록 액센트, 지도 패널 도트 그리드, 유리 범례(backdrop blur), 발광 시작 버튼, 모노 아이브로우 명판. 라이트 테마는 쿨 페이퍼 관제 데스크로 함께 재설계.
+
+**왜**: 사용자 피드백 "너무 밋밋해". 게임의 정체성(관측·적합·예측하는 관제실)을 시각 언어로.
+
+**기술 상세** (`world.html`):
+- `<style>` 블록 전면 재작성(~250줄). **모든 셀렉터·토큰명 유지** — JS(`readColors`)가 소비하는 `--series-*`·`--status-*`·`--z0~5`·`--surface-1` 등 이름 불변. 신규 토큰: `--accent`/`--accent-ink`/`--surface-2`/`--font-ui`/`--font-mono`.
+- 다크 우선 3상 테마: 베이스 `.viz-root`=다크, `@media (prefers-color-scheme: light)`+`:root:not([data-theme=dark])` 및 `:root[data-theme=light]`에 라이트 — 아티팩트 뷰어의 명시 토글·시스템 설정 모두 대응. `data-theme` MutationObserver로 토글 시 차트 색 재독(readColors).
+- **팔레트 재검증**(dataviz validate_palette.js): 시리즈 3색을 새 표면(라이트 #ffffff·다크 #111926)에서 전 항목 PASS(라이트 녹색 3:1 WARN은 기존과 동일 — 직접 라벨·데이터 표로 완화 유지). 시리즈·z램프 hex는 검증본 그대로, 상태색만 다크 전용 밝은 변형 추가.
+- 폰트: Google Fonts css2(Plex Sans KR 400/500/700 + Plex Mono 400/600, display=swap) — 아티팩트 CSP 허용 호스트. `claude:viewport-fit-sides` 메타 + `.viz-root` 좌우 `max(20px, env(safe-area-inset-*))` 패딩.
+- 접근성: `:focus-visible` 액센트 아웃라인, `prefers-reduced-motion` 전환 차단, 숫자 전부 tabular-nums.
+- 검증: 데스크톱 라이트/다크·모바일(375px) 스크린샷, 콘솔 에러 0, busan·covid 헤드리스 스모크(자동 경로 불변 — 수동 재설계 전 커밋 엔진과 동일 시드 결과 일치 확인), 좀비↔현실 라벨 교체 정상.
+
 ## 2026-11-03 — 🎮 수동 모드 재설계: "WHO의 부재"
 
 **무엇이**: 수동(게임) 모드의 의미를 "각국 자동 대응 전부 꺼짐"에서 **"각국 정부는 자동 모드와 똑같이 자국을 지키지만 WHO가 없다"**로 변경. WHO 공동 백신 연구·변이 개량이 수동에선 진행되지 않아 플레이어의 백신 투자·국제 공조가 승패를 가른다. 수동 시작 RP 60→150(초동 개입 여지).

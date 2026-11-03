@@ -52,7 +52,7 @@ _갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/`
 - **URL 해시만 바꾸면 리로드가 안 됨** — 재현 링크 테스트 시 쿼리 파라미터를 붙여 강제 리로드
 - 스냅샷/복원(`snapshot()`/`restoreSnap()`)이 운명 분포·상전이 실험·반사실 분기의 공통 기반 — **새 상태 변수를 추가하면 반드시 스냅샷에도 추가**할 것 (과거에 seedUsed 누락 버그 있었음)
 - 밸런스 수치는 전부 하네스 실측 기반 — 파라미터 변경 시 무개입/자동 기본/부산행/나는전설이다 4종 + 병원체 6종 재측정 권장
-- 차트/지도 팔레트는 dataviz 검증 통과본 — 색 변경 시 재검증 필요
+- 차트/지도 팔레트는 dataviz 검증 통과본 — 색 변경 시 재검증 필요 (2026-11-03 '상황실' 리디자인 때 새 표면에서 재검증 PASS. 토큰명은 JS readColors가 소비하므로 변경 금지, 디자인 토큰은 world.html <style> 상단)
 - **현실 모드 집계 의미가 다르다** — 생존에 E·Z 포함(12지점, TROUBLESHOOTING #2 목록). 히트맵 계열(ha5/hcA/pcA)은 E만 더함(사망=1-(alive+Z)/pop이라 Z 중복 금지). 병원체 프리셋 추가 시 `vesc` 명시 필수
 - **콘솔 검증 함정**: `scenario('custom')`은 직전 시나리오의 P·realMode를 상속 — 좀비 회귀 테스트는 리로드 후 기본 상태에서 (TROUBLESHOOTING #5)
 - `rebuildUserPresets`는 `optgroup[data-up]`만 제거 — 셀렉트에 그룹 추가 시 마커 규칙 유지 (TROUBLESHOOTING #3)

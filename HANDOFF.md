@@ -1,6 +1,6 @@
-# HANDOFF — 좀비 바이러스 확산 시뮬레이션 (v1 + v2)
+# HANDOFF — 🧪 아웃브레이크 랩 (구 좀비 바이러스 확산 시뮬레이션, v1 + v2)
 
-_갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` · 원격: https://github.com/Gamchilmat96/sim_project_
+_갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/` (2026-11-03 `zombie-sim`에서 개명) · 원격: https://github.com/Gamchilmat96/sim_project → **outbreak-lab로 웹에서 개명 필요**(개명 후 구 URL은 리다이렉트, 리모트 갱신: `git remote set-url origin git@github.com:Gamchilmat96/outbreak-lab.git`)_
 
 ## 1. 현재 상태
 
@@ -59,8 +59,8 @@ _갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` �
 ## 5. 검증 방법
 
 ```bash
-# 서버 (launch.json "zombie-sim" 또는):
-python3 -m http.server 8932 --directory ~/Desktop/Claude_Project/personal/zombie-sim
+# 서버 (launch.json "outbreak-lab" 또는):
+python3 -m http.server 8932 --directory ~/Desktop/Claude_Project/personal/outbreak-lab
 ```
 - v2: http://localhost:8932/world.html → ▶ 시작 → 확산·예측·자동 대응 확인, 콘솔 에러 0 확인
 - 헤드리스: 콘솔에서 `pandemicSim.scenario('busan'); pandemicSim.restart(21); pandemicSim.runDays(3700)` → win/lose/dark 결말 확인

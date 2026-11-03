@@ -1,6 +1,6 @@
 # HANDOFF — 좀비 바이러스 확산 시뮬레이션 (v1 + v2)
 
-_갱신: 2026-08-10 · 위치: `~/Desktop/시뮬레이션/zombie-sim/` · 원격: https://github.com/Gamchilmat96/sim_project_
+_갱신: 2026-08-10 · 위치: `~/Desktop/Claude_Project/personal/zombie-sim/` (2026-11-03 `~/Desktop/시뮬레이션/zombie-sim/`에서 이동) · 원격: https://github.com/Gamchilmat96/sim_project_
 
 ## 1. 현재 상태
 
@@ -45,7 +45,7 @@ _갱신: 2026-08-10 · 위치: `~/Desktop/시뮬레이션/zombie-sim/` · 원격
 
 ```bash
 # 서버 (launch.json "zombie-sim" 또는):
-python3 -m http.server 8931 --directory ~/Desktop/시뮬레이션/zombie-sim
+python3 -m http.server 8931 --directory ~/Desktop/Claude_Project/personal/zombie-sim
 ```
 - v2: http://localhost:8931/world.html → ▶ 시작 → 확산·예측·자동 대응 확인, 콘솔 에러 0 확인
 - 헤드리스: 콘솔에서 `pandemicSim.scenario('busan'); pandemicSim.restart(21); pandemicSim.runDays(3700)` → win/lose/dark 결말 확인

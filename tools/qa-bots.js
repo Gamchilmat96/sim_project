@@ -40,6 +40,20 @@
       for(const c of a.top(4)){if(a.st().rp<120)break;a.buy('military',c.name);}}},
     masker:{mode:'manual',ds:'방역 통제 집중',decide(a){
       for(const c of a.top(6)){if(a.st().rp<70)break;a.buy('dist',c.name);}}},
+    // 봉쇄 전략 2종 (리밸런스 검증용 — 2026-11-03)
+    containment:{mode:'manual',ds:'발원 봉쇄 — 백신 무투자. 추적(군)·방역 우선, 남는 RP로 차단',decide(a){
+      for(const c of a.top(8)){
+        if(a.st().rp<70)break;
+        a.buy('military',c.name);a.buy('dist',c.name);a.buy('airport',c.name);a.buy('border',c.name);
+      }}},
+    cont_then_vax:{mode:'manual',ds:'봉쇄 시도 → 실패 감지 시 백신 전환 (혼합 지배 재발 검사)',decide(a,m){
+      const s=a.st();
+      if(!m.sw&&(s.infected>8||s.day>150))m.sw=true;
+      if(m.sw)a.vac();
+      for(const c of a.top(m.sw?3:8)){
+        if(a.st().rp<70)break;
+        a.buy('military',c.name);a.buy('dist',c.name);a.buy('airport',c.name);
+      }}},
     // 복합 전략 4종
     balanced:{mode:'manual',ds:'백신+차단+소탕 삼각 편성',decide(a){
       let s=a.st();

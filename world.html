@@ -159,6 +159,10 @@
     border-radius:14px;padding:26px 34px;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.45);max-width:min(560px,92%);}
   .banner h2{margin:0 0 6px;font-size:22px;text-wrap:balance;}
   .banner p{margin:0 0 14px;color:var(--text-secondary);font-size:13px;line-height:1.65;}
+  .bn-grade{font-family:var(--font-mono);font-size:46px;font-weight:600;color:var(--accent);line-height:1.05;text-align:center;}
+  .bn-score{font-weight:600;text-align:center;margin:2px 0 8px;}
+  .bn-cmp{color:var(--text-secondary);font-size:12px;line-height:1.7;text-align:center;}
+  .bn-note{color:var(--muted);font-size:11px;text-align:center;margin-top:4px;}
 
   /* ---- 사이드 패널 ---- */
   .side{display:flex;flex-direction:column;gap:14px;}
@@ -491,7 +495,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     busan:{nm:'부산행',ds:'한국에서 시작된 초고속 감염. 반도라는 지형이 마지막 희망 — 항구와 하늘을 빨리 닫아라.',
       origin:'KR',beta:0.55,kappa:0.28,atotal:12e6,kland:1.2,z0:3,zlife:180,tinc:0,vacStep:8},
     wwz:{nm:'월드워Z',ds:'항공망을 타고 전 세계 동시다발 창궐. 가장 어려운 시나리오 — 백신만이 판을 뒤집는다.',
-      origin:'random',beta:0.50,kappa:0.30,atotal:30e6,kland:1.5,z0:20,zlife:365,tinc:0,vacStep:10},
+      origin:'random',beta:0.50,kappa:0.30,atotal:30e6,kland:1.5,z0:20,zlife:365,tinc:0,vacStep:10,nOrig:5},
     days28:{nm:'28일 후',ds:'영국의 분노 바이러스. 감염은 무섭게 빠르지만 감염자는 오래 버티지 못한다 — 섬을 봉쇄하면 끝난다.',
       origin:'GB',beta:0.60,kappa:0.20,atotal:8e6,kland:1.0,z0:5,zlife:28,tinc:0,vacStep:8},
     legend:{nm:'나는 전설이다',ds:'미국발 크리핀 바이러스. 감염자는 사냥하기 어렵고, 치료제 연구만이 유일한 출구다.',
@@ -528,22 +532,27 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   let autoMode=true; // 🤖 자동 대응(관전) / 🎮 수동 개입(게임)
   const ACTIONS_Z={
     border:{ic:'⛔',nm:'국경 봉쇄',cost:60,dur:90,prep:0,ds:'육로 통행 90일간 85% 차단'},
-    airport:{ic:'✈',nm:'공항 폐쇄',cost:80,dur:60,prep:0,ds:'항공편 60일간 95% 차단'},
-    military:{ic:'🪖',nm:'군 투입',cost:120,dur:30,prep:7,ds:'준비 7일 후 30일간 집중 소탕'},
+    airport:{ic:'✈',nm:'공항 폐쇄',cost:80,dur:60,prep:0,ds:'항공편 60일간 98% 차단 · 난민 억제는 국경 봉쇄'},
+    military:{ic:'🪖',nm:'군 투입',cost:120,dur:30,prep:7,ds:'준비 7일 후 30일간 소탕·색출 — 유행이 작을수록 강력'},
     dist:{ic:'😷',nm:'방역 통제',cost:70,dur:60,prep:0,ds:'접촉 60일간 절반으로 감소'},
   };
   const ACTIONS_R={
     border:{ic:'⛔',nm:'국경 봉쇄',cost:60,dur:90,prep:0,ds:'육로 통행 90일간 85% 차단'},
-    airport:{ic:'✈',nm:'공항 폐쇄',cost:80,dur:60,prep:0,ds:'항공편 60일간 95% 차단'},
-    military:{ic:'🧪',nm:'집중 검사·추적',cost:120,dur:30,prep:7,ds:'준비 7일 후 30일간 검사·격리 강화'},
+    airport:{ic:'✈',nm:'공항 폐쇄',cost:80,dur:60,prep:0,ds:'항공편 60일간 98% 차단 · 난민 억제는 국경 봉쇄'},
+    military:{ic:'🧪',nm:'집중 검사·추적',cost:120,dur:30,prep:7,ds:'준비 7일 후 30일간 추적·격리 — 유행이 작을수록 강력'},
     dist:{ic:'😷',nm:'방역 통제',cost:70,dur:60,prep:0,ds:'접촉 60일간 절반으로 감소'},
   };
+  // 봇 배치 기준선 — tools/make-baselines.mjs가 마커 블록을 재생성 (밸런스를 바꾸면 반드시 재주행·재생성)
+  const BASELINES=/*__BASELINES_START__*/{}/*__BASELINES_END__*/;
   let ACTIONS=ACTIONS_Z;
   const VAC_COST=50, VAC_CD=20, VAC_CAP=60e6, VAC_RAMP=120; // 생산능력 6천만 도즈/일까지 120일 램프
   // 수동 모드 = "WHO의 부재": 각국 정부는 자동 모드와 똑같이 자국을 지키지만, 백신 연구·개량과
   // 국제 공조(집중 개입)는 플레이어 몫이다. GOV/DELAY는 튜닝 손잡이(1.0 = 자동과 동등) —
   // 봇 QA 결과 0.55~0.7 구간은 부산행·월드워Z가 상전이 절벽 아래로 떨어져 전 전략 폐허(qa/ 참조).
   const MANUAL_GOV=1.0, MANUAL_DELAY=1.0, MANUAL_RP0=150;
+  // 선제 차단 할인: 공식 확인 전 국가의 국경·공항 차단은 절반 가격 — 예측(점선·✈의심 로그)을 '행동'으로 바꾸는 장치
+  const actionCost=(type,ci)=>{const A2=ACTIONS[type];
+    return (type==='border'||type==='airport')&&!revealed[ci]?Math.round(A2.cost/2):A2.cost;};
   const govF=i=>effGov[i]*(autoMode?1:MANUAL_GOV);
   const HRING=120; // 국가별 스파크라인 링 버퍼(일)
 
@@ -554,7 +563,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   const seas=new Float32Array(CN).fill(1);let doy0=0; // 계절 계수 (위도·연중일 기반)
   const cumInf=new Float64Array(CN),revealed=new Uint8Array(CN),everInf=new Uint8Array(CN);
   const distMul=new Float64Array(CN),landMul=new Float64Array(CN),airMul=new Float64Array(CN),
-        milMul=new Float64Array(CN),dmil=new Float64Array(CN);
+        milMul=new Float64Array(CN),dmil=new Float64Array(CN),
+        trc=new Float64Array(CN),mBorder=new Uint8Array(CN),mDist=new Uint8Array(CN); // 수동 전용: 추적 용량·국경/방역 표식 (매일 applyEffects가 재계산하는 파생값 — 스냅샷 불필요)
   const lam=new Float64Array(CN),lamAirSrc=new Int32Array(CN),lamAirMax=new Float64Array(CN);
   const hcA=new Float32Array(CN*HRING),hcZ=new Float32Array(CN*HRING); // (S+V), Z 링 버퍼
   const MAXS=560; // 분석용 국가별 전체 히스토리 (5일 간격, 최대 2800일)
@@ -611,7 +621,17 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       let r=rand()*tot; originIdx=playIdx[0];
       for(let k=0;k<playIdx.length;k++){r-=ws[k];if(r<=0){originIdx=playIdx[k];break;}}
     }
-    const z0=Math.min(P.z0,S[originIdx]);S[originIdx]-=z0;Z1[originIdx]=z0;Z[originIdx]=z0;everInf[originIdx]=1;infDay[originIdx]=0;
+    // 다발 기원(nOrig>1): 월드워Z의 '전 세계 동시다발 창궐'을 실제로 — 단일 발원 압살(봉쇄)이 구조적으로 불가능해진다
+    const nOr=(SCENARIOS[curScenario]&&SCENARIOS[curScenario].nOrig)||1;
+    const share=Math.max(1,Math.round(P.z0/nOr));
+    const seeded=[originIdx];
+    for(let k2=1;k2<nOr;k2++){ // 추가 발원국 √인구 가중 추첨 (중복 제외) — rand 소비는 nOrig>1 시나리오에서만
+      const ws2=playIdx.map(i=>seeded.includes(i)?0:Math.sqrt(ctry[i].pop)); const tot2=ws2.reduce((a,b)=>a+b,0);
+      let r2=rand()*tot2, pick=playIdx[0];
+      for(let k=0;k<playIdx.length;k++){r2-=ws2[k];if(r2<=0){pick=playIdx[k];break;}}
+      seeded.push(pick);
+    }
+    for(const oi of seeded){const z0=Math.min(share,S[oi]);S[oi]-=z0;Z1[oi]+=z0;Z[oi]+=z0;everInf[oi]=1;infDay[oi]=0;}
     if(!mcMode)logClear();
     if(curScenario!=='custom')logAdd('🎬',`시나리오 <b>${SCENARIOS[curScenario].nm}</b> — ${SCENARIOS[curScenario].ds}`);
     logAdd('🧪',T('어딘가에서 원인 불명의 실종 신고가 이어지고 있습니다…','어딘가에서 원인 불명의 폐렴 환자가 보고되고 있습니다…'));
@@ -638,18 +658,25 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   // ---- 개입 multiplier 재계산 ----
   function applyEffects(){
     distMul.fill(1);landMul.fill(1);airMul.fill(1);milMul.fill(1);dmil.fill(0);
+    trc.fill(0);mBorder.fill(0);mDist.fill(0);
     activeKeys.clear();
     const keep=[];
     for(const e of effects){
       if(day>=e.endsDay){if(!e.auto)logAdd('⏳',`${ctry[e.ci].name} — ${ACTIONS[e.type].nm} 종료`);continue;}
       keep.push(e);activeKeys.add(e.type+':'+e.ci);
       if(e.type==='military'&&day<e.startDay)continue; // 준비 중
-      const f=e.auto?govF(e.ci):1; // 자동 정책은 집행력만큼(수동 모드에선 그 55%), 수동 개입은 항상 100%
-      if(e.type==='border')landMul[e.ci]=Math.min(landMul[e.ci],1-0.85*f);
-      else if(e.type==='airport')airMul[e.ci]=Math.min(airMul[e.ci],1-0.95*f);
-      else if(e.type==='dist')distMul[e.ci]=Math.min(distMul[e.ci],e.auto?1-0.35*f:0.5);
-      else if(e.type==='military'){milMul[e.ci]=Math.max(milMul[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);dmil[e.ci]=Math.max(dmil[e.ci],0.08*f*eraMil);}
+      const f=e.auto?govF(e.ci):1; // 자동 정책은 집행력만큼, 수동 개입은 항상 100%
+      if(e.type==='border'){landMul[e.ci]=Math.min(landMul[e.ci],1-0.85*f);if(!e.auto)mBorder[e.ci]=1;}
+      else if(e.type==='airport')airMul[e.ci]=Math.min(airMul[e.ci],e.auto?1-0.95*f:0.02); // 수동 98% — 국제 공조 수준의 차단
+      else if(e.type==='dist'){distMul[e.ci]=Math.min(distMul[e.ci],e.auto?1-0.35*f:0.5);if(!e.auto)mDist[e.ci]=1;}
+      else if(e.type==='military'){
+        milMul[e.ci]=Math.max(milMul[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);
+        if(e.auto)dmil[e.ci]=Math.max(dmil[e.ci],0.08*f*eraMil);
+        else trc[e.ci]=0.25*eraMil; // 수동 = 용량 포화형 추적·격리 (θ_tr, stepDay에서 유행 규모로 감쇠)
+      }
     }
+    // 수동 방역+추적 패키지: 접촉 제한은 추적 부하를 줄인다 (봉쇄-추적 병행 전략)
+    for(const i2 of playIdx)if(trc[i2]>0&&mDist[i2])distMul[i2]=Math.min(distMul[i2],0.40);
     effects=keep;
   }
 
@@ -688,24 +715,30 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
           const pKill=1-Math.exp(-ki*(S[i]+V[i]+E[i])/Ni*dt);
           const pMil=1-Math.exp(-dmil[i]*dt);
           const pRot=1-Math.exp(-3/P.zlife*dt); // 3단계 부패 사슬 → 평균 수명 zlife일
+          // 용량 포화형 추적·격리(수동 군/검사 전용): 유행이 추적 용량(인구의 0.05%)을 넘으면 급감 — 조기 개입의 비선형 이득
+          const thTr=trc[i]>0?trc[i]/(1+(Z[i]+E[i])/(5e-4*Ni)):0;
           const nE=binom(S[i],pInf), nEv=vac.deployed?binom(V[i],pInfV):0,
                 nFs=realMode?0:binom(S[i]-nE,pAtk), nFv=realMode?0:binom(V[i]-nEv,pAtk), // 현실: 좀비 습격 없음, 사망은 IFR로
                 nT=binom(E[i],pProg),
-                nK=binom(Z[i],pKill), nD=binom(Z[i]-nK,pMil);
-          const remF=Z[i]>0?Math.min(1,(nK+nD)/Z[i]):0; // 제거·소탕은 부패 단계에 비례 배분
+                nK=binom(Z[i],pKill), nD=binom(Z[i]-nK,pMil),
+                nTr=thTr>0?binom(Z[i]-nK-nD,1-Math.exp(-thTr*dt)):0,                 // 추적 격리 (rand 소비는 수동 군 활성 시에만 — 자동 궤적 불변)
+                nTrE=thTr>0?binom(E[i]-nT,1-Math.exp(-0.8*thTr*dt)):0;               // 발증 전 색출 — epre 대응의 유일한 수단
+          const remF=Z[i]>0?Math.min(1,(nK+nD+nTr)/Z[i]):0; // 제거·소탕·추적은 부패 단계에 비례 배분 (Z=Z1+Z2+Z3 불변식)
           Z1[i]=Math.max(0,Z1[i]*(1-remF));Z2[i]=Math.max(0,Z2[i]*(1-remF));Z3[i]=Math.max(0,Z3[i]*(1-remF));
           const a1=Z1[i]*pRot,a2=Z2[i]*pRot,rot=Z3[i]*pRot;
           Z1[i]+=nT-a1;Z2[i]+=a1-a2;Z3[i]+=a2-rot;
-          S[i]-=nE+nFs;V[i]-=nEv+nFv;E[i]+=nE+nEv-nT;
+          S[i]-=nE+nFs;V[i]-=nEv+nFv;E[i]+=nE+nEv-nT-nTrE;
           Z[i]=Math.max(0,Z1[i]+Z2[i]+Z3[i]);
           if(realMode){ // 출구(격리 종료·감염기간 종료) = IFR만큼 사망, 나머지는 회복→면역(V)
-            const exits=nK+nD+rot;
+            const exits=nK+nD+nTr+rot;
             const sev=1-0.7*Math.min(1,cumInf[i]/Ni); // 면역 경험이 쌓이면 중증화가 줄어든다 (재감염 보호)
-            const died=Math.min(exits,exits*Math.min(1,P.ifr*trA*(med<1?1.5:1)*sev)); // 중증화 변이·의료 붕괴는 IFR 가중
-            R[i]+=died;V[i]+=exits-died;
-          } else {R[i]+=nK+nD+rot;}
+            const vprot=vac.deployed?1-0.6*Math.min(1,V[i]/Ni)*(vac.eff/0.92):1; // 백신의 중증 예방 — 접종률(≤100% 클램프: 난민 유입국은 V가 명목 인구를 넘을 수 있다)×효율, 최대 60%
+            const died=Math.min(exits,exits*Math.min(1,P.ifr*trA*(med<1?1.5:1)*sev*vprot)); // 중증화 변이·의료 붕괴는 IFR 가중
+            const died2=Math.min(nTrE,nTrE*Math.min(1,0.5*P.ifr*trA*(med<1?1.5:1)*sev*vprot)); // 조기 발견 격리 = 치명률 절반
+            R[i]+=died+died2;V[i]+=exits-died+nTrE-died2;
+          } else {R[i]+=nK+nD+nTr+nTrE+rot;} // 좀비: 추적 색출분도 제거
           F[i]+=nFs+nFv;dInc[i]+=nT+nFs+nFv;
-          cumInf[i]+=nT;dInf+=nE;dKill+=nK; // 탐지는 '좀비화(전환)' 기준
+          cumInf[i]+=nT;dInf+=nE;dKill+=nK; // 탐지는 '좀비화(전환)' 기준 · κ̂ 적합(dKill)에 추적분은 섞지 않는다
         }
 
       }
@@ -774,7 +807,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
           if(w>0){ws.push([j,w]);wsum+=w;}
         }
         if(wsum>0){
-          const mS=Math.round(0.007*S[i]),mE=Math.round(0.007*E[i]);
+          const rf=mBorder[i]?0.0035:0.007; // 수동 국경 봉쇄는 난민 유출도 절반으로
+          const mS=Math.round(rf*S[i]),mE=Math.round(rf*E[i]);
           if(mS+mE>0){
             if(!refLogged[i]){refLogged[i]=1;logAdd('🚶',`<b>${ctry[i].name}</b> 대탈출 — 난민 행렬이 이웃 국경으로 쏟아집니다`);}
             S[i]-=mS;E[i]-=mE;
@@ -925,16 +959,17 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const lm=new Float64Array(CN);
     for(let k=0;k*dtp<=365;k++){
       const tau=day+k*dtp;
-      const dM=new Float64Array(CN).fill(1),lM=new Float64Array(CN).fill(1),aM=new Float64Array(CN).fill(1),mM=new Float64Array(CN).fill(1),dm=new Float64Array(CN);
+      const dM=new Float64Array(CN).fill(1),lM=new Float64Array(CN).fill(1),aM=new Float64Array(CN).fill(1),mM=new Float64Array(CN).fill(1),dm=new Float64Array(CN),tp=new Float64Array(CN);
       for(const e of effects){
         if(tau>=e.endsDay&&!e.auto)continue;
         if(e.type==='military'&&tau<e.startDay)continue;
         const f=e.auto?govF(e.ci):1;
         if(e.type==='border')lM[e.ci]=Math.min(lM[e.ci],1-0.85*f);
-        else if(e.type==='airport')aM[e.ci]=Math.min(aM[e.ci],1-0.95*f);
+        else if(e.type==='airport')aM[e.ci]=Math.min(aM[e.ci],e.auto?1-0.95*f:0.02);
         else if(e.type==='dist')dM[e.ci]=Math.min(dM[e.ci],e.auto?1-0.35*f:0.5);
-        else{mM[e.ci]=Math.max(mM[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);dm[e.ci]=Math.max(dm[e.ci],0.08*f*eraMil);}
+        else{mM[e.ci]=Math.max(mM[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);if(e.auto)dm[e.ci]=Math.max(dm[e.ci],0.08*f*eraMil);else tp[e.ci]=0.25*eraMil;}
       }
+      for(const i2 of playIdx)if(tp[i2]>0&&dM[i2]<=0.5)dM[i2]=Math.min(dM[i2],0.40); // 수동 방역+추적 패키지
       let a=0,zz=0;for(const i of playIdx){a+=s[i]+v[i]+(realMode?e[i]+z[i]:0);zz+=z[i];}
       wa.push(a);wz.push(zz);wr.push(rww);
       for(const i of playIdx){
@@ -943,17 +978,21 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         const dI=beta*dM[i]*x*dtp,dT=P.tinc<=0?e[i]:Math.min(e[i],e[i]/P.tinc*dtp),
               dIv=beta*dM[i]*(1-vac.eff)*v[i]*(z[i]+P.epre*e[i])/Ni*dtp,
               dFs=realMode?0:P.alpha*s[i]*z[i]/Ni*dtp, dFv=realMode?0:P.alpha*v[i]*z[i]/Ni*dtp,
-              dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i])*z[i]*dtp;
+              th=tp[i]>0?tp[i]/(1+(z[i]+e[i])/(5e-4*Ni)):0,
+              dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i]+th)*z[i]*dtp,
+              dTr=Math.min(e[i],0.8*th*e[i]*dtp);
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
           const mulV=Math.max(0,1-10*z[i]/Ni);
           dv=Math.min(s[i],Math.min(0.03,capAt(tau)/Math.max(1,aliveS0))*s[i]*mulV*dtp);
         }
         s[i]=Math.max(0,s[i]-dI-dv-dFs);v[i]=Math.max(0,v[i]+dv-dIv-dFv);
-        e[i]=Math.max(0,e[i]+dI+dIv-dT);
+        e[i]=Math.max(0,e[i]+dI+dIv-dT-dTr);
         z[i]=Math.max(0,z[i]+dT-dK);
-        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni);const dd=dK*Math.min(1,P.ifr*sev);rww+=dd;v[i]+=dK-dd;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
-        else rww+=dK+dFs+dFv;
+        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni),vprot=vac.deployed?1-0.6*Math.min(1,v[i]/Ni)*(vac.eff/0.92):1;
+          const dd=dK*Math.min(1,P.ifr*sev*vprot),dd2=dTr*Math.min(1,0.5*P.ifr*sev*vprot);
+          rww+=dd+dd2;v[i]+=dK-dd+dTr-dd2;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
+        else rww+=dK+dFs+dFv+dTr;
       }
       lm.fill(0);
       for(const j of playIdx){
@@ -988,16 +1027,17 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     for(let k=0;k*dtp<=H;k++){
       const tau=day+k*dtp;
       // multiplier at tau
-      const dM=new Float64Array(CN).fill(1),lM=new Float64Array(CN).fill(1),aM=new Float64Array(CN).fill(1),mM=new Float64Array(CN).fill(1),dm=new Float64Array(CN);
+      const dM=new Float64Array(CN).fill(1),lM=new Float64Array(CN).fill(1),aM=new Float64Array(CN).fill(1),mM=new Float64Array(CN).fill(1),dm=new Float64Array(CN),tp=new Float64Array(CN);
       for(const e of effects){
         if(tau>=e.endsDay&&!e.auto)continue; // 자동 발동 정책은 위협이 있는 한 스스로 갱신되므로 만료 없음으로 취급
         if(e.type==='military'&&tau<e.startDay)continue;
         const f=e.auto?govF(e.ci):1;
         if(e.type==='border')lM[e.ci]=Math.min(lM[e.ci],1-0.85*f);
-        else if(e.type==='airport')aM[e.ci]=Math.min(aM[e.ci],1-0.95*f);
+        else if(e.type==='airport')aM[e.ci]=Math.min(aM[e.ci],e.auto?1-0.95*f:0.02);
         else if(e.type==='dist')dM[e.ci]=Math.min(dM[e.ci],e.auto?1-0.35*f:0.5);
-        else{mM[e.ci]=Math.max(mM[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);dm[e.ci]=Math.max(dm[e.ci],0.08*f*eraMil);}
+        else{mM[e.ci]=Math.max(mM[e.ci],1+(e.auto?1.2*f:1.5)*eraMil);if(e.auto)dm[e.ci]=Math.max(dm[e.ci],0.08*f*eraMil);else tp[e.ci]=0.25*eraMil;}
       }
+      for(const i2 of playIdx)if(tp[i2]>0&&dM[i2]<=0.5)dM[i2]=Math.min(dM[i2],0.40); // 수동 방역+추적 패키지
       // 기록
       if(k*dtp<=CHART||k%20===0){
         let a=0,zz=0,ee=0;for(const i of playIdx){a+=s[i]+v[i]+(realMode?e[i]+z[i]:0);zz+=z[i];ee+=e[i];}
@@ -1019,17 +1059,21 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         const dI=beta*dM[i]*x*dtp, dT=P.tinc<=0?e[i]:Math.min(e[i],e[i]/P.tinc*dtp),
               dIv=beta*dM[i]*(1-vac.eff)*v[i]*(z[i]+P.epre*e[i])/Ni*dtp,
               dFs=realMode?0:P.alpha*s[i]*z[i]/Ni*dtp, dFv=realMode?0:P.alpha*v[i]*z[i]/Ni*dtp,
-              dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i])*z[i]*dtp;
+              th=tp[i]>0?tp[i]/(1+(z[i]+e[i])/(5e-4*Ni)):0,
+              dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i]+th)*z[i]*dtp,
+              dTr=Math.min(e[i],0.8*th*e[i]*dtp);
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
           const mulV=Math.max(0,1-10*z[i]/Ni);
           dv=Math.min(s[i],Math.min(0.03,capAt(tau)/Math.max(1,aliveS0))*s[i]*mulV*dtp);
         }
         s[i]=Math.max(0,s[i]-dI-dv-dFs);v[i]=Math.max(0,v[i]+dv-dIv-dFv);
-        e[i]=Math.max(0,e[i]+dI+dIv-dT);
+        e[i]=Math.max(0,e[i]+dI+dIv-dT-dTr);
         z[i]=Math.max(0,z[i]+dT-dK);
-        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni);const dd=dK*Math.min(1,P.ifr*sev);rww+=dd;v[i]+=dK-dd;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
-        else rww+=dK+dFs+dFv;
+        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni),vprot=vac.deployed?1-0.6*Math.min(1,v[i]/Ni)*(vac.eff/0.92):1;
+          const dd=dK*Math.min(1,P.ifr*sev*vprot),dd2=dTr*Math.min(1,0.5*P.ifr*sev*vprot);
+          rww+=dd+dd2;v[i]+=dK-dd+dTr-dd2;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
+        else rww+=dK+dFs+dFv+dTr;
       }
       // 기대값 커플링 + 미감염국 누적 압력
       lm.fill(0);
@@ -1431,9 +1475,10 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         bar.appendChild(fi);mid.appendChild(bar);
         ds.textContent=(key==='military'&&day<act.startDay)?`준비 중 D-${act.startDay-day}`:`진행 중 D-${left} (재구매 시 연장)`;
       }
-      const cost=document.createElement('span');cost.className='cost';cost.textContent=`${A2.cost} RP`;
+      const myCost=actionCost(key,i);
+      const cost=document.createElement('span');cost.className='cost';cost.textContent=myCost<A2.cost?`선제 ${myCost} RP`:`${A2.cost} RP`;
       b.appendChild(ic);b.appendChild(mid);b.appendChild(cost);
-      b.disabled=!!outcome||autoMode||rp<A2.cost||ctryDead(i);
+      b.disabled=!!outcome||autoMode||rp<myCost||ctryDead(i);
       b.addEventListener('click',()=>buyAction(key,i));
       acts.appendChild(b);
     }
@@ -1481,13 +1526,14 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   // ---- 개입 구매 ----
   function buyAction(type,ci){
     const A2=ACTIONS[type];
-    if(rp<A2.cost||outcome)return;
-    rp-=A2.cost;
-    const ex=effects.find(e2=>e2.ci===ci&&e2.type===type);
+    const cost=actionCost(type,ci);
+    if(rp<cost||outcome)return;
+    rp-=cost;
+    const ex=effects.find(e2=>e2.ci===ci&&e2.type===type&&!e2.auto); // 자동 효과와 별개로 수동 효과를 만든다 (자동을 '연장'하면 수동 전용 강도가 영영 안 붙는 버그)
     if(ex){ex.startDay=type==='military'?Math.min(ex.startDay,day+A2.prep):day;ex.endsDay=day+(A2.prep||0)+A2.dur;}
     else effects.push({type,ci,startDay:day+(A2.prep||0),endsDay:day+(A2.prep||0)+A2.dur});
-    actStats[type]++;actStats.rpSpent+=A2.cost;
-    logAdd(A2.ic,`<b>${ctry[ci].name}</b> — ${A2.nm} ${ex?'연장':'개시'} (−${A2.cost} RP)`);
+    actStats[type]++;actStats.rpSpent+=cost;
+    logAdd(A2.ic,`<b>${ctry[ci].name}</b> — ${A2.nm} ${ex?'연장':'개시'}${cost<A2.cost?' · 선제 ½가':''} (−${cost} RP)`);
     applyEffects();if(!mcMode){renderMap();renderPanel();updateHud();} // MC/QA 배치에서는 렌더 생략
   }
   function buyVaccine(){ // 버튼과 콘솔 act('vaccine') 공용 — 버튼 disabled 상태에 의존하지 않는다
@@ -1737,6 +1783,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       el2('div','label',t2,label);el2('div','value',t2,val);if(note)el2('div','note',t2,note);};
     tile('결과',outcome?(outcome.type==='win'?(rate>=0.95?'🏆 완벽한 방어':rate>=0.45?'🛡 상처뿐인 승리':'🕯 폐허 속의 생존'):outcome.type==='dark'?T('🌑 암흑의 시대','🦠 엔데믹'):'🧟 인류 전멸'):'⏳ 진행 중',`D+${nf.format(day)} · 발생지 ${ctry[originIdx].name}`);
     tile('최종 생존',fmtKo(alive),`인류의 ${(rate*100).toFixed(1)}%`);
+    {const scr=computeScore();
+     if(scr&&scr.grade)tile('성적',`${scr.grade} · ${scr.score}점`,`${scr.pct!=null?'봇 분포 상위 '+scr.pct+'% · ':''}결말 ${scr.parts.결말} 구조 ${scr.parts.구조} 속도 ${scr.parts.속도} 효율 ${scr.parts.효율}`);
+     else if(scr&&scr.note)tile('성적','—',scr.note);}
     tile('총 사망',fmtKo(hist.R[n]),`좀비 제거 ${fmtKo(rz)} · 희생 ${fmtKo(fw2)}`);
     tile(T('좀비 정점','감염 정점'),fmtKo(peakZ),`D+${nf.format(peakD)}`);
     tile('감염 경험',`${evN}/172개국`,`붕괴 ${ctryFallen.size}곳 · 첫 확인 ${firstRevealDay>=0?'D+'+nf.format(firstRevealDay):'없음'}`);
@@ -1900,13 +1949,15 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       el2('div','panel-title',hcard,`지난 판 기록 (${runs.length}판)`);
       const agg={};
       for(const r2 of runs){const k2=(SCENARIOS[r2.sc]?SCENARIOS[r2.sc].nm:r2.sc);
-        if(!agg[k2])agg[k2]={n:0,win:0,lose:0,dark:0,al:[]};
-        agg[k2].n++;agg[k2][r2.out]=(agg[k2][r2.out]||0)+1;agg[k2].al.push(r2.aliveP);}
+        if(!agg[k2])agg[k2]={n:0,win:0,lose:0,dark:0,al:[],gr:[]};
+        agg[k2].n++;agg[k2][r2.out]=(agg[k2][r2.out]||0)+1;agg[k2].al.push(r2.aliveP);
+        if(r2.grade)agg[k2].gr.push(r2.grade);}
       const g2=el2('div','cgrid',hcard);g2.style.paddingBottom='8px';
       for(const [nm2,a2] of Object.entries(agg)){
         a2.al.sort((x,y)=>x-y);
         el2('div','l',g2,nm2+` ×${a2.n}`);
-        el2('div','v',g2,`생존 ${a2.win||0} · 전멸 ${a2.lose||0} · 암흑 ${a2.dark||0} · 생존율 중앙값 ${a2.al[Math.floor(a2.al.length/2)]}%`);
+        const bg='SABCDF'.split('').find(g3=>a2.gr.includes(g3));
+        el2('div','v',g2,`생존 ${a2.win||0} · 전멸 ${a2.lose||0} · 암흑 ${a2.dark||0} · 생존율 중앙값 ${a2.al[Math.floor(a2.al.length/2)]}%${bg?' · 최고 '+bg:''}`);
       }
       const crow=el2('div','rp-row',hcard);crow.style.paddingBottom='12px';
       const cb2=document.createElement('button');cb2.className='btn';cb2.style.cssText='padding:4px 10px;font-size:11px';
@@ -2129,17 +2180,54 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   }
 
   // ---- 배너 ----
+  // ---- 종료 성적표 (종료 시 1회 파생 계산 — 상태·스냅샷 불필요) ----
+  const clamp01=x=>Math.max(0,Math.min(1,x));
+  function computeScore(){
+    if(!outcome)return null;
+    const deadP=hist.R[hist.R.length-1]/NW*100;
+    const perf=realMode?100-deadP:outcome.alive/NW*100; // 성과: 현실=100−사망(출생 왜곡 회피), 좀비=생존율
+    const B=BASELINES[curScenario];
+    const res={perf:+perf.toFixed(1),deadP:+deadP.toFixed(1)};
+    if(!B||curEra!=='modern'){res.note='기준선 없음 — 사용자 설정 판';return res;}
+    res.cmp=B;
+    if(autoMode){res.note='관전 판 — 등급은 수동 모드에서';return res;}
+    if(actStats.rpSpent<50){res.note='무개입 판 — 등급은 50 RP 이상 개입 시';return res;}
+    const sOut=outcome.type==='win'?40:outcome.type==='dark'?10:0;
+    const head=Math.max(B.auto,B.best)-B.idle;
+    const sResc=head>=3?35*clamp01((perf-B.idle)/head):35*clamp01(1-(B.idle-perf)/20); // 기준선 구조(무개입→최선) 속 내 위치
+    const sSpd=outcome.type==='win'&&B.bestDay?15*clamp01(0.5+0.35*Math.log2(B.bestDay/Math.max(1,outcome.day))):0;
+    const sEff=10*clamp01((perf-B.idle)*NW/(100*Math.max(1,actStats.rpSpent)*2e6)); // RP당 구한 목숨
+    const score=Math.round(Math.max(0,Math.min(100,sOut+sResc+sSpd+sEff)));
+    res.score=score;
+    res.grade=score>=90?'S':score>=75?'A':score>=60?'B':score>=45?'C':score>=30?'D':'F';
+    if(B.dec&&B.dec.length===11){
+      let k=0;while(k<10&&score>B.dec[k+1])k++;
+      const lo=B.dec[k],hi=B.dec[k+1];
+      res.pct=Math.max(1,Math.round(100-(k*10+(hi>lo?(score-lo)/(hi-lo)*10:5)))); // 봇 분포 상위 N%
+    }
+    res.parts={결말:sOut,구조:Math.round(sResc),속도:Math.round(sSpd),효율:Math.round(sEff)};
+    return res;
+  }
   function showBanner(){
     const bn=$('#banner');
     if(!outcome){bn.style.display='none';return;}
+    const scr=computeScore();
     if(!runRecorded){runRecorded=true;
       try{const arr=JSON.parse(localStorage.getItem('zs_runs')||'[]');
         arr.push({sc:curScenario,era:curEra,out:outcome.type,day:outcome.day,
-          aliveP:+(outcome.alive/NW*100).toFixed(1),variants:variants.length,ts:Date.now()});
+          aliveP:+(outcome.alive/NW*100).toFixed(1),variants:variants.length,
+          score:scr&&scr.score!=null?scr.score:null,grade:(scr&&scr.grade)||null,ts:Date.now()});
         while(arr.length>200)arr.shift();
         localStorage.setItem('zs_runs',JSON.stringify(arr));}catch{}}
     bn.style.display='flex';
     const stats=$('#bnStats');stats.textContent='';stats.style.display='none';
+    if(scr){
+      let h3='';
+      if(scr.grade)h3+=`<div class="bn-grade">${scr.grade}</div><div class="bn-score">${scr.score}점${scr.pct!=null?` · 봇 분포 상위 ${scr.pct}%`:''}</div>`;
+      if(scr.cmp)h3+=`<div class="bn-cmp">사망 ${scr.deadP}% — 자동 정부 ${scr.cmp.autoDead}% 대비 ${Math.abs(scr.cmp.autoDead-scr.deadP).toFixed(1)}%p ${scr.cmp.autoDead>=scr.deadP?'적음':'많음'}<br>성과 ${scr.perf} · 무개입 ${scr.cmp.idle} · 최적 봇(${scr.cmp.bestBot}) ${scr.cmp.best}</div>`;
+      if(scr.note)h3+=`<div class="bn-note">${scr.note}</div>`;
+      if(h3){stats.innerHTML=h3;stats.style.display='block';}
+    }
     const known=revealed.some(v=>v);
     if(outcome.type==='win'&&!known){
       $('#bnTitle').textContent='🤫 조용한 종식';

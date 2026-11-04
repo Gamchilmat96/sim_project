@@ -1,6 +1,6 @@
 # HANDOFF — 🧪 아웃브레이크 랩 (구 좀비 바이러스 확산 시뮬레이션, v1 + v2)
 
-_갱신: 2026-11-04 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/` (2026-11-03 `zombie-sim`에서 개명) · 원격: https://github.com/Gamchilmat96/sim_project → **outbreak-lab로 웹에서 개명 필요**(개명 후 구 URL은 리다이렉트, 리모트 갱신: `git remote set-url origin git@github.com:Gamchilmat96/outbreak-lab.git`)_
+_갱신: 2026-11-04(백신 현실화 1차까지) · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/` (2026-11-03 `zombie-sim`에서 개명) · 원격: https://github.com/Gamchilmat96/sim_project → **outbreak-lab로 웹에서 개명 필요**(개명 후 구 URL은 리다이렉트, 리모트 갱신: `git remote set-url origin git@github.com:Gamchilmat96/outbreak-lab.git`)_
 
 ## 1. 현재 상태
 
@@ -20,7 +20,13 @@ _갱신: 2026-11-04 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/`
   발증 전 전파(`epre`), IFR 사망 + 재감염 중증 보호, 변이 항원성(`vesc`, 홍역·에볼라·사스는 면역 회피 없음),
   현실 모드 생존 집계에 E·Z 포함. 디스클레이머 고정 표기. 상세: CHANGELOG 2026-11-03, README "🦠 현실 모드" 절.
 
-## 2. 이번 세션(2026-11-03) 변경 사항
+## 2. 이번 세션(2026-11-04) 변경 사항
+
+- **💉 백신 현실화 1차 (커밋 7e55305)**: 플랫폼 3종 1회 비가역 선택(mRNA/벡터/불활화 — 연구 속도·효율·개량·램프·콜드체인 전부 상이) + COVAX 형평 배분·변이 압력 게이지 + 링 접종(국가 동사) + 접종 수용 상한·집단면역 문턱 타일. **자동 모드는 legacy 고정** — auto·idle 봇 200행이 구 기준선과 비트 동일(무회귀 기계 검증). 적대 리뷰(17 에이전트) 확정 7건 수정(effGov 직렬화·플랫폼 원자성 등 — CHANGELOG 상세). 봇 1,200판 2회 재주행(위반 0) 후 BASELINES=vax-platform-1. 예측기 인구 클램프로 홍역급 폭주 Inf/NaN 기존 결함 수리(#11).
+- 같은 날 앞 커밋: 리밸런스+성적표(5e5d84f)·BASELINES/리뷰 수정(c2123fe) — 아래 2026-11-03 절과 CHANGELOG 참조.
+- **2차 이터레이션 후보(심판 권고 보존)**: 생산 선구매(앳리스크 제조 — fate 분포를 소비하는 동사, 60RP·0.7^pre 램프 단축), 균주 재조준(vac.retoolDay + 예측기 ve=(tau>=retoolDay)?effMax:eff 미러 — '비가시 선언' 버전은 수용 불가로 명기), prog≥70 시험 링(4게이트 수술 동반), 임상 실패+포트폴리오(단독 RNG는 킬 목록), 접종 기피 이벤트, 결정 모멘트·예측 베팅(이전 세션 후보 유지).
+
+## 이전 세션(2026-11-03) 변경 사항
 
 - `world.html` — 🦠 현실 모드 전체 (위 요약 · CHANGELOG 상세). 좀비 모드 회귀 무변화 실측(기본 win@536 생존 101.4%).
 - `CHANGELOG.md`·`TROUBLESHOOTING.md` 신설 (DEV_PROCESS §0 적용 시작, 문제 5건 기록)
@@ -39,8 +45,9 @@ _갱신: 2026-11-04 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/`
 
 ## 3. 다음 할 일 (우선순위 순)
 
-0. (완료 2026-11-04) 게임성 리밸런스+성적표 — 용량 포화 추적·wwz 다발 기원·선제 할인·S~F 등급·BASELINES.
+0. (완료 2026-11-04) 게임성 리밸런스+성적표, **백신 현실화 1차**(플랫폼·COVAX·링·수용 상한 — §2).
    밸런스를 또 만지면 **QA_CHECKLIST B-1·B-2**(커밋 엔진으로 1,200판 재주행 → make-baselines.mjs 재생성) 필수.
+   백신 2차 이터레이션 후보는 §2 끝 목록(선구매·균주 재조준이 선두).
 
 1. ~~수동 모드 좀비 밸런스 재조정~~ ✅ 완료(2026-11-03) — "WHO의 부재" 설계 채택: 각국 정부는 자동과 동일, WHO 백신만 플레이어 몫, 시작 RP 150. 2차 배치 1,000판 검증(자동 무회귀·수동 전략 분화). 잔여 이상치: covid×balanced 54%(어중간한 억제 함정 극단) — 2번 항목과 같은 뿌리
 2. (선택) 현실 모드 밸런스 미세조정 — 코로나 10년 누적 사망 과대(봇 데이터로 재확인: 무개입 6.9% < 자동 14.7% '어중간한 억제의 함정'). 백신 개량 시 IFR 감소 항 추가 검토

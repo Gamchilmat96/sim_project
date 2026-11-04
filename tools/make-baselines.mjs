@@ -15,7 +15,7 @@ const med=a=>{if(!a.length)return null;a=[...a].sort((x,y)=>x-y);const m=a.lengt
 const r1=x=>x==null?null:+x.toFixed(1);
 const perf=r=>r.real?100-r.deadP:r.aliveP;
 
-const scs=[...new Set(runs.map(r=>r.sc))];
+const scs=[...new Set(runs.map(r=>r.sc))].filter(sc=>sc!=='custom'); // custom은 '사용자 설정 판' — 기준선을 만들지 않는다(임의 파라미터 판이 기본 분포로 채점되는 것 방지)
 const B={_meta:{src:runsPath.split('/').pop(),engine,runs:runs.length}};
 const report=[];
 for(const sc of scs){

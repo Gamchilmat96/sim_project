@@ -1,6 +1,6 @@
 # HANDOFF — 🧪 아웃브레이크 랩 (구 좀비 바이러스 확산 시뮬레이션, v1 + v2)
 
-_갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/` (2026-11-03 `zombie-sim`에서 개명) · 원격: https://github.com/Gamchilmat96/sim_project → **outbreak-lab로 웹에서 개명 필요**(개명 후 구 URL은 리다이렉트, 리모트 갱신: `git remote set-url origin git@github.com:Gamchilmat96/outbreak-lab.git`)_
+_갱신: 2026-11-04 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/` (2026-11-03 `zombie-sim`에서 개명) · 원격: https://github.com/Gamchilmat96/sim_project → **outbreak-lab로 웹에서 개명 필요**(개명 후 구 URL은 리다이렉트, 리모트 갱신: `git remote set-url origin git@github.com:Gamchilmat96/outbreak-lab.git`)_
 
 ## 1. 현재 상태
 
@@ -38,6 +38,9 @@ _갱신: 2026-11-03 · 위치: `~/Desktop/Claude_Project/personal/outbreak-lab/`
 - `README.md` — 전체 기능 문서 (섹션별 상세)
 
 ## 3. 다음 할 일 (우선순위 순)
+
+0. (완료 2026-11-04) 게임성 리밸런스+성적표 — 용량 포화 추적·wwz 다발 기원·선제 할인·S~F 등급·BASELINES.
+   밸런스를 또 만지면 **QA_CHECKLIST B-1·B-2**(커밋 엔진으로 1,200판 재주행 → make-baselines.mjs 재생성) 필수.
 
 1. ~~수동 모드 좀비 밸런스 재조정~~ ✅ 완료(2026-11-03) — "WHO의 부재" 설계 채택: 각국 정부는 자동과 동일, WHO 백신만 플레이어 몫, 시작 RP 150. 2차 배치 1,000판 검증(자동 무회귀·수동 전략 분화). 잔여 이상치: covid×balanced 54%(어중간한 억제 함정 극단) — 2번 항목과 같은 뿌리
 2. (선택) 현실 모드 밸런스 미세조정 — 코로나 10년 누적 사망 과대(봇 데이터로 재확인: 무개입 6.9% < 자동 14.7% '어중간한 억제의 함정'). 백신 개량 시 IFR 감소 항 추가 검토

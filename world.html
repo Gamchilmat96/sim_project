@@ -543,7 +543,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     dist:{ic:'😷',nm:'방역 통제',cost:70,dur:60,prep:0,ds:'접촉 60일간 절반으로 감소'},
   };
   // 봇 배치 기준선 — tools/make-baselines.mjs가 마커 블록을 재생성 (밸런스를 바꾸면 반드시 재주행·재생성)
-  const BASELINES=/*__BASELINES_START__*/{}/*__BASELINES_END__*/;
+  const BASELINES=/*__BASELINES_START__*/{"_meta":{"src":"bot-runs-2026-11-04.json","engine":"5e5d84f+fixes","runs":1200},"busan":{"idle":54.5,"auto":91.1,"autoDead":10.5,"best":100.1,"bestBot":"cont_then_vax","bestDay":51,"dec":[10,10,10,15,29,44,68,80,87,94,100]},"wwz":{"idle":84.5,"auto":105,"autoDead":2.3,"best":105.4,"bestBot":"vax_rush","bestDay":2560,"dec":[10,10,18,24,26,29,71,79,83,84,93]},"days28":{"idle":1.4,"auto":1.7,"autoDead":76.6,"best":100.2,"bestBot":"cont_then_vax","bestDay":105,"dec":[10,11,40,40,40,40,40,40,46,92,100]},"legend":{"idle":0.7,"auto":0.9,"autoDead":73.5,"best":1.3,"bestBot":"vax_rush","bestDay":null,"dec":[45,45,45,45,45,45,45,45,45,53,55]},"covid":{"idle":94.3,"auto":90.5,"autoDead":9.5,"best":94.9,"bestBot":"balanced","bestDay":1623,"dec":[10,29,37,41,43,44,45,45,45,83,94]},"omicron":{"idle":98.3,"auto":94.3,"autoDead":5.7,"best":98.6,"bestBot":"containment","bestDay":null,"dec":[35,38,39,41,42,44,45,45,45,45,55]},"flu1918":{"idle":90.6,"auto":97.3,"autoDead":2.7,"best":100,"bestBot":"cont_then_vax","bestDay":55,"dec":[10,12,16,18,23,31,60,67,70,91,94]},"ebola":{"idle":100,"auto":100,"autoDead":0,"best":100,"bestBot":"vax_rush","bestDay":83,"dec":[78,78,79,80,82,82,83,83,84,85,87]},"sars03":{"idle":100,"auto":100,"autoDead":0,"best":100,"bestBot":"vax_rush","bestDay":400,"dec":[75,78,80,81,82,83,83,87,89,90,90]}}/*__BASELINES_END__*/;
   let ACTIONS=ACTIONS_Z;
   const VAC_COST=50, VAC_CD=20, VAC_CAP=60e6, VAC_RAMP=120; // 생산능력 6천만 도즈/일까지 120일 램프
   // 수동 모드 = "WHO의 부재": 각국 정부는 자동 모드와 똑같이 자국을 지키지만, 백신 연구·개량과
@@ -622,7 +622,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       for(let k=0;k<playIdx.length;k++){r-=ws[k];if(r<=0){originIdx=playIdx[k];break;}}
     }
     // 다발 기원(nOrig>1): 월드워Z의 '전 세계 동시다발 창궐'을 실제로 — 단일 발원 압살(봉쇄)이 구조적으로 불가능해진다
-    const nOr=(SCENARIOS[curScenario]&&SCENARIOS[curScenario].nOrig)||1;
+    const nOr=(SCENARIOS[curScenario]&&SCENARIOS[curScenario].nOrig)||(curScenario.startsWith('u:')&&(getUserPresets()[curScenario.slice(2)]||{}).nOrig)||1;
     const share=Math.max(1,Math.round(P.z0/nOr));
     const seeded=[originIdx];
     for(let k2=1;k2<nOr;k2++){ // 추가 발원국 √인구 가중 추첨 (중복 제외) — rand 소비는 nOrig>1 시나리오에서만
@@ -980,7 +980,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
               dFs=realMode?0:P.alpha*s[i]*z[i]/Ni*dtp, dFv=realMode?0:P.alpha*v[i]*z[i]/Ni*dtp,
               th=tp[i]>0?tp[i]/(1+(z[i]+e[i])/(5e-4*Ni)):0,
               dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i]+th)*z[i]*dtp,
-              dTr=Math.min(e[i],0.8*th*e[i]*dtp);
+              eRm=Math.max(0,e[i]-dT), dTr=Math.min(eRm,0.8*th*eRm*dtp); // 색출은 전환 후 잔여 기반 (엔진 nTrE=binom(E−nT,·) 미러 — tinc=0이면 0)
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
           const mulV=Math.max(0,1-10*z[i]/Ni);
@@ -1061,7 +1061,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
               dFs=realMode?0:P.alpha*s[i]*z[i]/Ni*dtp, dFv=realMode?0:P.alpha*v[i]*z[i]/Ni*dtp,
               th=tp[i]>0?tp[i]/(1+(z[i]+e[i])/(5e-4*Ni)):0,
               dK=(kappa*mM[i]*(s[i]+v[i]+e[i])/Ni+1/P.zlife+dm[i]+th)*z[i]*dtp,
-              dTr=Math.min(e[i],0.8*th*e[i]*dtp);
+              eRm=Math.max(0,e[i]-dT), dTr=Math.min(eRm,0.8*th*eRm*dtp); // 색출은 전환 후 잔여 기반 (엔진 nTrE=binom(E−nT,·) 미러 — tinc=0이면 0)
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
           const mulV=Math.max(0,1-10*z[i]/Ni);
@@ -1459,7 +1459,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     }
     const acts=document.createElement('div');acts.className='acts';
     for(const [key,A2] of Object.entries(ACTIONS)){
-      const act=effects.find(e2=>e2.ci===i&&e2.type===key);
+      const act=effects.find(e2=>e2.ci===i&&e2.type===key&&!e2.auto); // 수동 효과만 — 자동 효과는 buyAction이 연장하지 않는다
       const b=document.createElement('button');b.className='act';
       const ic=document.createElement('span');ic.className='ic';ic.textContent=A2.ic;
       const mid=document.createElement('span');
@@ -1541,6 +1541,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(vac.deployed){
       if(vac.eff>=0.92)return;
       rp-=VAC_COST;vac.lastBuy=day;vac.eff=Math.min(0.92,vac.eff+0.12);
+      actStats.vacBuys++;actStats.rpSpent+=VAC_COST;
       logAdd('💉',`백신 개량 투자 — 효율 ${Math.round(vac.eff*100)}%`);
       updateHud();return;
     }
@@ -2185,10 +2186,12 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   function computeScore(){
     if(!outcome)return null;
     const deadP=hist.R[hist.R.length-1]/NW*100;
+    let fSum=0;for(const i2 of playIdx)fSum+=F[i2];
+    const deadCmp=+(((hist.R[hist.R.length-1]-fSum)/NW)*100).toFixed(1); // 자동 정부 비교용: 기준선(autoDead)과 같은 정의(R만, 물리 희생 F 제외)
     const perf=realMode?100-deadP:outcome.alive/NW*100; // 성과: 현실=100−사망(출생 왜곡 회피), 좀비=생존율
     const B=BASELINES[curScenario];
-    const res={perf:+perf.toFixed(1),deadP:+deadP.toFixed(1)};
-    if(!B||curEra!=='modern'){res.note='기준선 없음 — 사용자 설정 판';return res;}
+    const res={perf:+perf.toFixed(1),deadP:+deadP.toFixed(1),deadCmp};
+    if(!B||curEra!=='modern'){res.note='기준선 없음 — 봇 분포 밖의 판(사용자 설정·비현대 시대 등)';return res;}
     res.cmp=B;
     if(autoMode){res.note='관전 판 — 등급은 수동 모드에서';return res;}
     if(actStats.rpSpent<50){res.note='무개입 판 — 등급은 50 RP 이상 개입 시';return res;}
@@ -2203,7 +2206,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(B.dec&&B.dec.length===11){
       let k=0;while(k<10&&score>B.dec[k+1])k++;
       const lo=B.dec[k],hi=B.dec[k+1];
-      res.pct=Math.max(1,Math.round(100-(k*10+(hi>lo?(score-lo)/(hi-lo)*10:5)))); // 봇 분포 상위 N%
+      res.pct=Math.min(100,Math.max(1,Math.round(100-(k*10+(hi>lo?(score-lo)/(hi-lo)*10:5))))); // 봇 분포 상위 N% (1~100 클램프)
     }
     res.parts={결말:sOut,구조:Math.round(sResc),속도:Math.round(sSpd),효율:Math.round(sEff)};
     return res;
@@ -2224,7 +2227,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(scr){
       let h3='';
       if(scr.grade)h3+=`<div class="bn-grade">${scr.grade}</div><div class="bn-score">${scr.score}점${scr.pct!=null?` · 봇 분포 상위 ${scr.pct}%`:''}</div>`;
-      if(scr.cmp)h3+=`<div class="bn-cmp">사망 ${scr.deadP}% — 자동 정부 ${scr.cmp.autoDead}% 대비 ${Math.abs(scr.cmp.autoDead-scr.deadP).toFixed(1)}%p ${scr.cmp.autoDead>=scr.deadP?'적음':'많음'}<br>성과 ${scr.perf} · 무개입 ${scr.cmp.idle} · 최적 봇(${scr.cmp.bestBot}) ${scr.cmp.best}</div>`;
+      if(scr.cmp)h3+=`<div class="bn-cmp">사망 ${scr.deadCmp}% — 자동 정부 ${scr.cmp.autoDead}% 대비 ${Math.abs(scr.cmp.autoDead-scr.deadCmp).toFixed(1)}%p ${scr.cmp.autoDead>=scr.deadCmp?'적음':'많음'}<br>성과 ${scr.perf} · 무개입 ${scr.cmp.idle} · 최적 봇(${scr.cmp.bestBot}) ${scr.cmp.best}</div>`;
       if(scr.note)h3+=`<div class="bn-note">${scr.note}</div>`;
       if(h3){stats.innerHTML=h3;stats.style.display='block';}
     }
@@ -2417,7 +2420,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const nm2=prompt('프리셋 이름을 입력하세요','나의 시나리오');
     if(!nm2)return;
     const ps=getUserPresets();
-    ps[nm2]={beta:P.beta,kappa:P.kappa,tinc:P.tinc,zlife:P.zlife,atotal:P.atotal,kland:P.kland,z0:P.z0,origin:P.origin,ifr:P.ifr,epre:P.epre,imm:P.imm,vesc:P.vesc,real:realMode};
+    ps[nm2]={beta:P.beta,kappa:P.kappa,tinc:P.tinc,zlife:P.zlife,atotal:P.atotal,kland:P.kland,z0:P.z0,origin:P.origin,ifr:P.ifr,epre:P.epre,imm:P.imm,vesc:P.vesc,real:realMode,nOrig:(SCENARIOS[curScenario]&&SCENARIOS[curScenario].nOrig)||(curScenario.startsWith('u:')&&(getUserPresets()[curScenario.slice(2)]||{}).nOrig)||1};
     localStorage.setItem('zs_presets',JSON.stringify(ps));
     rebuildUserPresets();$('#c-scn').value='u:'+nm2;curScenario='u:'+nm2;syncPresetBtn();
     logAdd('☆',`프리셋 "${nm2}" 저장 — 시나리오 목록에서 불러올 수 있어요`);

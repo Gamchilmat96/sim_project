@@ -16,7 +16,16 @@
     return {
       st:()=>PS().state(),
       top:n=>PS().top(n),
-      vac(){const s=PS().state();if(s.rp>=50&&(s.vaccine<100||(s.vacEff!=null&&s.vacEff<0.92)))PS().act('vaccine');},
+      vac(){const s=PS().state();if(s.rp>=50&&(s.vaccine<100||(s.vacEff!=null&&s.vacEff<(s.vacEffMax||0.92))))PS().act('vaccine');},
+      plat(k){PS().act('platform',k);}, // 플랫폼 1회 선택 (이미 선택·자동 모드면 무해한 no-op)
+      covax(){const s=PS().state();if(s.vacEff!=null&&(s.covax||0)<3&&s.rp>=90)PS().act('covax');},
+      ring(name){ // 표적 접종 — 국가당 15일 쿨다운으로 난사 방지
+        const s=PS().state();
+        if(s.rp<50||s.vacEff==null)return false;
+        const k='r:'+name;
+        if(mem['@'+k]&&s.day<mem['@'+k])return false;
+        PS().act('ring',name);mem['@'+k]=s.day+15;return true;
+      },
       buy(t,name){
         const s=PS().state();
         if(s.rp<COST[t])return false;
@@ -33,7 +42,9 @@
     auto_observer:{mode:'auto',ds:'자동 정부 관전 (현 기본값)',decide(){}},
     idle:{mode:'manual',ds:'무개입 (최악 기준선)',decide(){}},
     // 단일 전략 4종
-    vax_rush:{mode:'manual',ds:'백신 올인',decide(a){a.vac();}},
+    vax_rush:{mode:'manual',ds:'백신 올인 — 시드 홀짝으로 mRNA/불활화 교차 (플랫폼 분화 측정)',decide(a,m){
+      if(!m.p){a.plat(m.seed%2?'mrna':'inact');m.p=1;}
+      a.vac();a.covax();}},
     border_hawk:{mode:'manual',ds:'국경·공항 차단 집중',decide(a){
       for(const c of a.top(6)){if(!a.buy('airport',c.name)&&a.st().rp<60)break;a.buy('border',c.name);}}},
     hammer:{mode:'manual',ds:'군 투입(검사·추적) 집중',decide(a){
@@ -46,22 +57,26 @@
         if(a.st().rp<70)break;
         a.buy('military',c.name);a.buy('dist',c.name);a.buy('airport',c.name);a.buy('border',c.name);
       }}},
-    cont_then_vax:{mode:'manual',ds:'봉쇄 시도 → 실패 감지 시 백신 전환 (혼합 지배 재발 검사)',decide(a,m){
+    cont_then_vax:{mode:'manual',ds:'봉쇄 시도 → 실패 감지 시 백신 전환 + 배포 후 링 접종 (혼합 지배 재발 검사)',decide(a,m){
       const s=a.st();
       if(!m.sw&&(s.infected>8||s.day>150))m.sw=true;
-      if(m.sw)a.vac();
+      if(m.sw){a.vac();a.covax();}
       for(const c of a.top(m.sw?3:8)){
         if(a.st().rp<70)break;
         a.buy('military',c.name);a.buy('dist',c.name);a.buy('airport',c.name);
-      }}},
+      }
+      if(s.vacEff!=null)for(const c of a.top(3)){if(a.st().rp<100)break;a.ring(c.name);}}},
     // 복합 전략 4종
-    balanced:{mode:'manual',ds:'백신+차단+소탕 삼각 편성',decide(a){
+    balanced:{mode:'manual',ds:'백신+차단+소탕 삼각 편성 + 배포 후 부스터·COVAX·링',decide(a){
       let s=a.st();
       if(s.rp>=170)a.vac();
+      else if(s.vacEff!=null&&s.vacEff<(s.vacEffMax||0.92)-0.1&&s.rp>=100)a.vac(); // 변이로 효율이 크게 깎이면 부스터 우선 (개량 방치는 '균형'이 아니다)
+      if(s.vacEff!=null){a.covax();}
       const t=a.top(3);if(!t.length)return;
       if(a.st().rp>=120&&t[0].ratio>0.01)a.buy('military',t[0].name);
       if(a.st().rp>=80)a.buy('airport',t[0].name);
-      for(const c of t.slice(1)){if(a.st().rp<70)break;a.buy('dist',c.name);}}},
+      for(const c of t.slice(1)){if(a.st().rp<70)break;a.buy('dist',c.name);}
+      if(s.vacEff!=null&&a.st().rp>=120)for(const c of t.slice(0,2))a.ring(c.name);}},
     late_panic:{mode:'manual',ds:'20개국 감염 확인까지 방관 후 총력',decide(a,m){
       const s=a.st();
       if(!m.on){if(s.infected>=20)m.on=true;else return;}
@@ -115,9 +130,9 @@
     if(q.sc!==sc)inv.push('scenario-mismatch:'+q.sc);
     return {bot:botKey,sc,seed,mode:bot.mode,out:s.outcome?s.outcome.type:'none',day:s.day,
       aliveP:+aliveP.toFixed(2),deadP:+(q.R/q.NW*100).toFixed(2),peakZP:+(q.peakZ/q.NW*100).toFixed(3),
-      infected:s.infected,variants:s.variants,vacProg:s.vaccine,vacEff:s.vacEff,
+      infected:s.infected,variants:s.variants,vacProg:s.vaccine,vacEff:s.vacEff,plat:s.plat||null,
       vacDay:q.vacDoneDay>=0?q.vacDoneDay:null,real:q.real?1:0,
-      rpSpent:q.stats.rpSpent,b:q.stats.border,a:q.stats.airport,m:q.stats.military,d:q.stats.dist,v:q.stats.vacBuys,
+      rpSpent:q.stats.rpSpent,b:q.stats.border,a:q.stats.airport,m:q.stats.military,d:q.stats.dist,v:q.stats.vacBuys,rg:q.stats.ring||0,cv:q.stats.covax||0,
       inv:inv.join('|'),ms:Math.round(performance.now()-t0)};
   }
 

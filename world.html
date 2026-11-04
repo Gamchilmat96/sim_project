@@ -294,6 +294,15 @@
       </div>
       <div class="stat">하늘길 차단<b id="hudAir">0%</b></div>
       <button class="btn" id="btnVac" title="전 세계 공동 백신 연구에 자금을 투입합니다 (+8%)">💉 연구 투자 <span style="color:var(--muted);font-weight:400">50 RP</span></button>
+      <div class="seg-group" id="platSeg" style="display:none" title="백신 플랫폼 — 한 번 고르면 바꿀 수 없습니다. 병원체의 변이 속도(vesc)·발생 지역을 보고 고르세요">
+        <button class="seg" data-p="mrna" title="개발 빠름 · 효율 92% · 개량 강함(+15%p/15일) — 초저온 콜드체인: 저소득국 배포 +45일·2%/일">🧬 mRNA</button>
+        <button class="seg" data-p="vector" title="중간 속도 · 효율 85% · 개량 +10%p/20일 — 냉장 유통: 저소득국 +15일·2.5%/일">🧫 벡터</button>
+        <button class="seg" data-p="inact" title="개발 느림 · 효율 78% · 개량 +8%p/25일 — 콜드체인 불요: 어디서나 3%/일">🏺 불활화</button>
+      </div>
+      <button class="btn" id="btnCovax" style="display:none">🌍 COVAX <span style="color:var(--muted);font-weight:400">40 RP</span></button>
+      <div class="stat" id="varPStat" style="display:none" title="오늘 새 변이가 출현할 확률 — 세계 감염 규모에 비례합니다. 저소득국 접종이 늦을수록 이 게이지가 오래 높게 유지되고, 변이는 백신 효율을 깎습니다">변이 압력 <span id="hudVarP" style="font-weight:700;color:var(--text-primary)">—</span>
+        <div class="meter"><div id="varBar"></div></div>
+      </div>
     </section>
     <section class="controls card">
       <div class="ctl">🎬 시나리오
@@ -543,9 +552,34 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     dist:{ic:'😷',nm:'방역 통제',cost:70,dur:60,prep:0,ds:'접촉 60일간 절반으로 감소'},
   };
   // 봇 배치 기준선 — tools/make-baselines.mjs가 마커 블록을 재생성 (밸런스를 바꾸면 반드시 재주행·재생성)
-  const BASELINES=/*__BASELINES_START__*/{"_meta":{"src":"bot-runs-2026-11-04.json","engine":"5e5d84f+fixes","runs":1200},"busan":{"idle":54.5,"auto":91.1,"autoDead":10.5,"best":100.1,"bestBot":"cont_then_vax","bestDay":51,"dec":[10,10,10,15,29,44,68,80,87,94,100]},"wwz":{"idle":84.5,"auto":105,"autoDead":2.3,"best":105.4,"bestBot":"vax_rush","bestDay":2560,"dec":[10,10,18,24,26,29,71,79,83,84,93]},"days28":{"idle":1.4,"auto":1.7,"autoDead":76.6,"best":100.2,"bestBot":"cont_then_vax","bestDay":105,"dec":[10,11,40,40,40,40,40,40,46,92,100]},"legend":{"idle":0.7,"auto":0.9,"autoDead":73.5,"best":1.3,"bestBot":"vax_rush","bestDay":null,"dec":[45,45,45,45,45,45,45,45,45,53,55]},"covid":{"idle":94.3,"auto":90.5,"autoDead":9.5,"best":94.9,"bestBot":"balanced","bestDay":1623,"dec":[10,29,37,41,43,44,45,45,45,83,94]},"omicron":{"idle":98.3,"auto":94.3,"autoDead":5.7,"best":98.6,"bestBot":"containment","bestDay":null,"dec":[35,38,39,41,42,44,45,45,45,45,55]},"flu1918":{"idle":90.6,"auto":97.3,"autoDead":2.7,"best":100,"bestBot":"cont_then_vax","bestDay":55,"dec":[10,12,16,18,23,31,60,67,70,91,94]},"ebola":{"idle":100,"auto":100,"autoDead":0,"best":100,"bestBot":"vax_rush","bestDay":83,"dec":[78,78,79,80,82,82,83,83,84,85,87]},"sars03":{"idle":100,"auto":100,"autoDead":0,"best":100,"bestBot":"vax_rush","bestDay":400,"dec":[75,78,80,81,82,83,83,87,89,90,90]}}/*__BASELINES_END__*/;
+  const BASELINES=/*__BASELINES_START__*/{"_meta":{"src":"bot-runs-2026-11-04b.json","engine":"vax-platform-1","runs":1200},"busan":{"idle":54.5,"auto":91.1,"autoDead":10.5,"best":100.1,"bestBot":"cont_then_vax","bestDay":51,"dec":[10,10,10,20,35,62,71,79,87,94,100]},"wwz":{"idle":84.5,"auto":105,"autoDead":2.3,"best":105.3,"bestBot":"vax_rush","bestDay":2688,"dec":[10,10,19,24,27,31,76,81,83,85,94]},"days28":{"idle":1.4,"auto":1.7,"autoDead":76.6,"best":100.2,"bestBot":"cont_then_vax","bestDay":105,"dec":[10,11,40,40,40,40,40,43,50,92,100]},"legend":{"idle":0.7,"auto":0.9,"autoDead":73.5,"best":100,"bestBot":"balanced","bestDay":2778,"dec":[10,10,10,10,10,10,10,14,18,30,88]},"covid":{"idle":94.3,"auto":90.5,"autoDead":9.5,"best":98.9,"bestBot":"balanced","bestDay":1085,"dec":[10,10,10,10,10,12,16,21,27,45,83]},"omicron":{"idle":98.3,"auto":94.3,"autoDead":5.7,"best":98.6,"bestBot":"containment","bestDay":null,"dec":[22,38,40,41,42,44,45,45,45,45,55]},"flu1918":{"idle":90.6,"auto":97.3,"autoDead":2.7,"best":100,"bestBot":"cont_then_vax","bestDay":55,"dec":[10,10,14,18,21,24,57,66,70,91,94]},"ebola":{"idle":100,"auto":100,"autoDead":0,"best":100,"bestBot":"vax_rush","bestDay":83,"dec":[78,78,79,80,82,82,83,83,84,85,87]},"sars03":{"idle":100,"auto":100,"autoDead":0,"best":100,"bestBot":"vax_rush","bestDay":394,"dec":[75,77,81,81,82,84,85,87,89,90,90]}}/*__BASELINES_END__*/;
   let ACTIONS=ACTIONS_Z;
-  const VAC_COST=50, VAC_CD=20, VAC_CAP=60e6, VAC_RAMP=120; // 생산능력 6천만 도즈/일까지 120일 램프
+  const VAC_COST=50, VAC_CD=20, VAC_CAP=60e6; // 공동 연구 50RP·쿨다운 20일 · 생산능력 6천만 도즈/일
+  // ---- 💉 백신 플랫폼 (2026-11-04) ----
+  // 수동 모드에서 첫 연구 투자 때 1회 비가역 선택. 자동으로 '시작한' 판은 plat=null→legacy(종전 수치 그대로) —
+  // auto_observer·idle 봇 행이 구 BASELINES와 동일해야 한다는 무회귀 불변식이 기계 검증 가능해진다.
+  // 수동에서 선택 후 자동 전환하면 선택 플랫폼 수치를 그대로 유지한다(연구 step 포함 — autoRespond도 plat() 참조).
+  // step=연구 속도 · eff0=완성 효율 · ramp=생산 램프(일) · imp/cd=개량 폭·쿨다운 ·
+  // coldDelay/coldCap=콜드체인(저소득국 effGov<0.7: 배포 지연일·일일 접종 상한 — COVAX가 완화) · eras=선택 가능 시대
+  const PLAT={
+    legacy:{nm:'공동 백신',ic:'💉',step:1,eff0:0.92,ramp:120,imp:0.12,cd:20,coldDelay:0,coldCap:0.03,eras:[]},
+    mrna:{nm:'mRNA',ic:'🧬',step:1.5,eff0:0.92,ramp:100,imp:0.15,cd:15,coldDelay:45,coldCap:0.02,eras:['modern','future'],
+      ds:'개발 빠름 · 효율 92% · 개량 강함(+15%p) — 초저온 콜드체인: 저소득국 배포 +45일·2%/일'},
+    vector:{nm:'바이러스 벡터',ic:'🧫',step:1.1,eff0:0.85,ramp:120,imp:0.10,cd:20,coldDelay:15,coldCap:0.025,eras:['modern','future'],
+      ds:'중간 속도 · 효율 85% — 냉장 유통: 저소득국 배포 +15일·2.5%/일'},
+    inact:{nm:'불활화',ic:'🏺',step:0.75,eff0:0.78,imp:0.08,cd:25,ramp:140,coldDelay:0,coldCap:0.03,eras:['modern','future','industrial'],
+      ds:'개발 느림 · 효율 78% — 콜드체인 불요: 어디서나 3%/일 (산업혁명기 유일 선택지)'},
+  };
+  const plat=()=>PLAT[vac.plat]||PLAT.legacy;
+  const platDefault=()=>curEra==='industrial'?'inact':'mrna'; // 미선택 투자(봇·콘솔)의 시대 기본값
+  // 생산 램프 — stepDay·fit·quickPred 3곳이 전부 이 헬퍼를 쓴다 (C-3 단일 소스: 복붙 미러 금지)
+  const rampDays=()=>plat().ramp*eraVacRampF;
+  const capAtT=t2=>vac.deployed?VAC_CAP*Math.min(1,Math.max(0,t2-vacDoneDay)/rampDays()):0;
+  const coldHit=i=>plat().coldDelay>0&&effGov[i]<0.7; // 콜드체인 제약국 (정부 효율<0.7 = 저소득 근사)
+  const vacCapF=i=>coldHit(i)?Math.min(plat().coldCap+0.005*(vac.covax||0),0.03):0.03; // 국가 일일 접종 상한 — COVAX 1회당 +0.5%p
+  // 접종 수용 상한(기피) — 신뢰(정부 효율)가 기본을, 공포가 수요를 올린다. legacy(자동·구 세이브)는 무제한(종전 동작 보존)
+  const upRoom=(s2,v2,i)=>{if(!vac.plat||vac.plat==='legacy')return s2;
+    const u=Math.min(0.97,0.55+0.35*effGov[i]+0.10*fearL[i]);return Math.max(0,Math.min(s2,u*(s2+v2)-v2));};
   // 수동 모드 = "WHO의 부재": 각국 정부는 자동 모드와 똑같이 자국을 지키지만, 백신 연구·개량과
   // 국제 공조(집중 개입)는 플레이어 몫이다. GOV/DELAY는 튜닝 손잡이(1.0 = 자동과 동등) —
   // 봇 QA 결과 0.55~0.7 구간은 부산행·월드워Z가 상전이 절벽 아래로 떨어져 전 전략 폐허(qa/ 참조).
@@ -571,8 +605,8 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   const ha5=new Float32Array(CN*MAXS),hz5=new Float32Array(CN*MAXS);
   let histC5n=0;
   const infDay=new Int32Array(CN).fill(-1),fallDay=new Int32Array(CN).fill(-1);
-  let actStats={border:0,airport:0,military:0,dist:0,vacBuys:0,rpSpent:0};
-  let effects=[],rp=60,vac={prog:0,lastBuy:-99,deployed:false,eff:0};
+  let actStats={border:0,airport:0,military:0,dist:0,vacBuys:0,rpSpent:0,ring:0,covax:0};
+  let effects=[],rp=60,vac={prog:0,lastBuy:-99,deployed:false,eff:0,plat:null,covax:0};
   const GREEK=['알파','베타','감마','델타','엡실론','제타','에타','세타','이오타','카파','람다','뮤'];
   let variants=[],betaMul=1; // 변이 목록 · 전파력 배수
   // 자동 대응: 국가별 반응 지연(5~30일)과 집행력(55~100%) — 신속·유능한 나라와 굼뜨고 부실한 나라가 생긴다
@@ -597,7 +631,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   function restart(seed){
     seedUsed=seed>>>0||((Math.random()*2**32)>>>0);
     rngA=seedUsed|0;spare=null;
-    day=0;outcome=null;pred=null;effects=[];rp=autoMode?60:MANUAL_RP0;vac={prog:0,lastBuy:-99,deployed:false,eff:0};
+    day=0;outcome=null;pred=null;effects=[];rp=autoMode?60:MANUAL_RP0;vac={prog:0,lastBuy:-99,deployed:false,eff:0,plat:null,covax:0};
     variants=[];betaMul=1;F.fill(0);
     hist={A:[],Z:[],R:[],V:[]};evXI=[];evXK=[];evInf=[];evKill=[];
     repInf=[];repKill=[];obsU=0.55+0.35*rand();
@@ -610,7 +644,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     {const d0=new Date(startDate);doy0=Math.floor((d0-new Date(d0.getFullYear(),0,0))/864e5);}seas.fill(1);
     histC5n=0;infDay.fill(-1);fallDay.fill(-1);vacStart.fill(0);covMilestone=0;
     fearL.fill(0);fatig.fill(1);dInc.fill(0);govFail.fill(0);medLogged.fill(0);refLogged.fill(0);govFailDay.fill(-1);
-    actStats={border:0,airport:0,military:0,dist:0,vacBuys:0,rpSpent:0};
+    actStats={border:0,airport:0,military:0,dist:0,vacBuys:0,rpSpent:0,ring:0,covax:0};
     if(!mcMode){const fo=$('#fateOut');if(fo)fo.textContent='';}
     hcA.fill(0);hcZ.fill(0);cumInf.fill(0);revealed.fill(0);everInf.fill(0);
     for(const c of ctry){S[c.i]=c.pop;Z[c.i]=0;R[c.i]=0;V[c.i]=0;E[c.i]=0;F[c.i]=0;Z1[c.i]=0;Z2[c.i]=0;Z3[c.i]=0;}
@@ -732,7 +766,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
           if(realMode){ // 출구(격리 종료·감염기간 종료) = IFR만큼 사망, 나머지는 회복→면역(V)
             const exits=nK+nD+nTr+rot;
             const sev=1-0.7*Math.min(1,cumInf[i]/Ni); // 면역 경험이 쌓이면 중증화가 줄어든다 (재감염 보호)
-            const vprot=vac.deployed?1-0.6*Math.min(1,V[i]/Ni)*(vac.eff/0.92):1; // 백신의 중증 예방 — 접종률(≤100% 클램프: 난민 유입국은 V가 명목 인구를 넘을 수 있다)×효율, 최대 60%
+            const vprot=vac.deployed?1-0.6*Math.min(1,V[i]/Ni)*(vac.eff/plat().eff0):1; // 백신의 중증 예방 — 접종률(≤100% 클램프: 난민 유입국은 V가 명목 인구를 넘을 수 있다)×효율, 최대 60%. 분모=플랫폼 완성 효율(불활화도 중증 보호는 온전)
             const died=Math.min(exits,exits*Math.min(1,P.ifr*trA*(med<1?1.5:1)*sev*vprot)); // 중증화 변이·의료 붕괴는 IFR 가중
             const died2=Math.min(nTrE,nTrE*Math.min(1,0.5*P.ifr*trA*(med<1?1.5:1)*sev*vprot)); // 조기 발견 격리 = 치명률 절반
             R[i]+=died+died2;V[i]+=exits-died+nTrE-died2;
@@ -817,19 +851,22 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         }
       }
     }
-    // 백신 배포: 생산 램프 + 국가별 시작 시차 + 치안(좀비 비율) 제약
+    // 백신 배포: 생산 램프 + 국가별 시작 시차 + 치안(좀비 비율) 제약 + 플랫폼 콜드체인·접종 수용 상한
+    // legacy(자동 모드)에서는 upRoom=S·vacCapF=0.03이라 추가 클램프가 절대 묶이지 않는다 — 종전 궤적 비트 동일
     if(vac.deployed){
-      const cap=VAC_CAP*Math.min(1,(day-vacDoneDay)/(VAC_RAMP*eraVacRampF));
+      const cap=capAtT(day);
       let tot=0;const elig=[];
       for(const i of playIdx){
         if(day<vacStart[i]||S[i]<1||govFail[i])continue;
         const mulV=Math.max(0,1-10*Z[i]/ctry[i].pop);
         if(mulV<=0)continue;
-        const w=S[i]*mulV;tot+=w;elig.push([i,w]);
+        const base=upRoom(S[i],V[i],i);
+        if(base<1)continue;
+        const w=base*mulV;tot+=w;elig.push([i,w,base]);
       }
       if(tot>0){
-        const doses=Math.min(cap,0.03*tot); // 국가 접종 역량 상한 3%/일
-        for(const [i,w] of elig){const d2=Math.min(S[i],doses*w/tot);S[i]-=d2;V[i]+=d2;}
+        const doses=Math.min(cap,0.03*tot); // 세계 접종 역량 상한 3%/일
+        for(const [i,w,base] of elig){const d2=Math.min(base,doses*w/tot,vacCapF(i)*S[i]);S[i]-=d2;V[i]+=d2;}
       }
       let vwm=0;for(const i of playIdx)vwm+=V[i];
       const cov=Math.floor(vwm/NW*4);
@@ -933,16 +970,16 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     autoLogBuf.clear();
     if(!autoMode)return; // 수동 모드: WHO 백신 연구·개량은 플레이어의 투자 몫
     // WHO 개량 연구: 변이로 효율이 떨어지면 자동 부스터 개발
-    if(vac.deployed&&vac.eff<0.9&&day-vac.lastBuy>=VAC_CD){
-      vac.lastBuy=day;vac.eff=Math.min(0.92,vac.eff+0.12);
+    if(vac.deployed&&vac.eff<plat().eff0-0.02&&day-vac.lastBuy>=plat().cd){ // 자동=legacy: 0.90·+0.12·CD20 종전 그대로
+      vac.lastBuy=day;vac.eff=Math.min(plat().eff0,vac.eff+plat().imp);
       logAdd('💉',`WHO 백신 개량 — 효율 ${Math.round(vac.eff*100)}%`);
     }
     // WHO 공동 백신: 첫 감염 확인 20일 후 연구 개시, 쿨다운마다 자동 진행
     if(!vac.deployed&&revInfN>=1&&eraVacOn){
       if(whoStart<0){whoStart=day+60;logAdd('🏥','WHO가 공동 백신 연구를 준비하고 있습니다 (개시까지 60일)');}
       else if(day>=whoStart&&day-vac.lastBuy>=VAC_CD){
-        vac.lastBuy=day;vac.prog=Math.min(100,vac.prog+Math.max(1,Math.round(P.vacStep*eraVacStepF)));
-        if(vac.prog>=100){vac.deployed=true;vac.eff=0.92;vacDoneDay=day;for(const i2 of playIdx)vacStart[i2]=day+Math.round((1-effGov[i2])*120+rand()*30);logAdd('🎉','<b>WHO 백신 완성!</b> 생산 램프업과 국가별 배포가 시작됩니다');}
+        vac.lastBuy=day;vac.prog=Math.min(100,vac.prog+Math.max(1,Math.round(P.vacStep*eraVacStepF*plat().step))); // 수동 선택 후 자동 전환해도 플랫폼 수치 일관 (legacy step=1 — 자동 시작 판 무회귀)
+        if(vac.prog>=100){vac.deployed=true;vac.eff=plat().eff0;vacDoneDay=day;for(const i2 of playIdx)vacStart[i2]=day+Math.round((1-effGov[i2])*120+rand()*30)+(coldHit(i2)?plat().coldDelay:0);logAdd('🎉','<b>WHO 백신 완성!</b> 생산 램프업과 국가별 배포가 시작됩니다');}
         else logAdd('💉',`WHO 백신 연구 진행 ${vac.prog}%`);
       }
     }
@@ -953,7 +990,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   function quickPred(beta,kappa){
     const s=Float64Array.from(S),z=Float64Array.from(Z),v=Float64Array.from(V),e=Float64Array.from(E);
     let aliveS0=0;for(const i of playIdx)aliveS0+=s[i];
-    const capAt=t2=>vac.deployed?VAC_CAP*Math.min(1,Math.max(0,t2-vacDoneDay)/(VAC_RAMP*eraVacRampF)):0;
+    const capAt=capAtT; // 생산 램프 단일 소스 (C-3)
     const dtp=2,wa=[],wz=[],wr=[];
     let rww=0;for(const i of playIdx)rww+=R[i];
     const lm=new Float64Array(CN);
@@ -984,14 +1021,14 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
           const mulV=Math.max(0,1-10*z[i]/Ni);
-          dv=Math.min(s[i],Math.min(0.03,capAt(tau)/Math.max(1,aliveS0))*s[i]*mulV*dtp);
+          dv=Math.min(upRoom(s[i],v[i],i),Math.min(vacCapF(i),capAt(tau)/Math.max(1,aliveS0))*s[i]*mulV*dtp); // 콜드체인 상한·수용 상한 미러 (legacy=종전 식)
         }
         s[i]=Math.max(0,s[i]-dI-dv-dFs);v[i]=Math.max(0,v[i]+dv-dIv-dFv);
-        e[i]=Math.max(0,e[i]+dI+dIv-dT-dTr);
-        z[i]=Math.max(0,z[i]+dT-dK);
-        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni),vprot=vac.deployed?1-0.6*Math.min(1,v[i]/Ni)*(vac.eff/0.92):1;
+        e[i]=Math.max(0,Math.min(1.5*Ni,e[i]+dI+dIv-dT-dTr)); // 인구 상한 — 결정론 오일러(dtp=2)는 폭주 병원체(홍역 β1.9)에서 지수 폭발→Inf/NaN. 엔진(이항)은 인구를 못 넘으므로 상한이 미러를 더 정확하게 만든다 (TROUBLESHOOTING #11)
+        z[i]=Math.max(0,Math.min(1.5*Ni,z[i]+dT-dK));
+        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni),vprot=vac.deployed?1-0.6*Math.min(1,v[i]/Ni)*(vac.eff/plat().eff0):1;
           const dd=dK*Math.min(1,P.ifr*sev*vprot),dd2=dTr*Math.min(1,0.5*P.ifr*sev*vprot);
-          rww+=dd+dd2;v[i]+=dK-dd+dTr-dd2;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
+          rww+=dd+dd2;v[i]=Math.min(1.5*Ni,v[i]+dK-dd+dTr-dd2);const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
         else rww+=dK+dFs+dFv+dTr;
       }
       lm.fill(0);
@@ -1014,7 +1051,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     // 전방 적분 (결정론, 기대값 커플링, 현 개입 상태 유지·만료 반영)
     const s=Float64Array.from(S),z=Float64Array.from(Z),v=Float64Array.from(V),e=Float64Array.from(E);
     let aliveS0=0;for(const i of playIdx)aliveS0+=s[i];
-    const capAt=t2=>vac.deployed?VAC_CAP*Math.min(1,Math.max(0,t2-vacDoneDay)/(VAC_RAMP*eraVacRampF)):0;
+    const capAt=capAtT; // 생산 램프 단일 소스 (C-3)
     const dtp=2,H=4000;
     const wa=[],wz=[],wr=[];
     const CHART=365, SPARK_EV=5, sparkN=Math.floor(CHART/SPARK_EV)+1;
@@ -1065,14 +1102,14 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         let dv=0;
         if(vac.deployed&&tau>=vacStart[i]){
           const mulV=Math.max(0,1-10*z[i]/Ni);
-          dv=Math.min(s[i],Math.min(0.03,capAt(tau)/Math.max(1,aliveS0))*s[i]*mulV*dtp);
+          dv=Math.min(upRoom(s[i],v[i],i),Math.min(vacCapF(i),capAt(tau)/Math.max(1,aliveS0))*s[i]*mulV*dtp); // 콜드체인 상한·수용 상한 미러 (legacy=종전 식)
         }
         s[i]=Math.max(0,s[i]-dI-dv-dFs);v[i]=Math.max(0,v[i]+dv-dIv-dFv);
-        e[i]=Math.max(0,e[i]+dI+dIv-dT-dTr);
-        z[i]=Math.max(0,z[i]+dT-dK);
-        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni),vprot=vac.deployed?1-0.6*Math.min(1,v[i]/Ni)*(vac.eff/0.92):1;
+        e[i]=Math.max(0,Math.min(1.5*Ni,e[i]+dI+dIv-dT-dTr)); // 인구 상한 — quickPred와 동일 (TROUBLESHOOTING #11)
+        z[i]=Math.max(0,Math.min(1.5*Ni,z[i]+dT-dK));
+        if(realMode){const sev=1-0.7*Math.min(1,cumInf[i]/Ni),vprot=vac.deployed?1-0.6*Math.min(1,v[i]/Ni)*(vac.eff/plat().eff0):1;
           const dd=dK*Math.min(1,P.ifr*sev*vprot),dd2=dTr*Math.min(1,0.5*P.ifr*sev*vprot);
-          rww+=dd+dd2;v[i]+=dK-dd+dTr-dd2;const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
+          rww+=dd+dd2;v[i]=Math.min(1.5*Ni,v[i]+dK-dd+dTr-dd2);const wv=v[i]/P.imm*dtp;v[i]=Math.max(0,v[i]-wv);s[i]+=wv;}
         else rww+=dK+dFs+dFv+dTr;
       }
       // 기대값 커플링 + 미감염국 누적 압력
@@ -1230,6 +1267,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
   function snapshot(){
     return {day,outcome,pred,rp,rngA,spare,whoStart,revInfN,originIdx,firstRevealDay,vacDoneDay,seedUsed,
       S:S.slice(),Z:Z.slice(),R:R.slice(),V:V.slice(),E:E.slice(),F:F.slice(),Z1:Z1.slice(),Z2:Z2.slice(),Z3:Z3.slice(),cumInf:cumInf.slice(),
+      effGov:effGov.slice(),reactDelay:reactDelay.slice(), // 적대 리뷰 D2-1: coldHit/vacCapF/upRoom이 effGov를 일일 배포에 소비 — 저장/불러오기에서 재추첨되면 vacStart에 구워진 콜드체인 지연과 어긋난다
       repInf:repInf.slice(),repKill:repKill.slice(),obsU,
       variants:variants.map(x=>({...x})),betaMul,
       ha5:ha5.slice(),hz5:hz5.slice(),histC5n,infDay:infDay.slice(),fallDay:fallDay.slice(),actStats:{...actStats},
@@ -1247,12 +1285,13 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     whoStart=o.whoStart;revInfN=o.revInfN;originIdx=o.originIdx;
     firstRevealDay=o.firstRevealDay;vacDoneDay=o.vacDoneDay;
     S.set(o.S);Z.set(o.Z);R.set(o.R);V.set(o.V);E.set(o.E);F.set(o.F);Z1.set(o.Z1);Z2.set(o.Z2);Z3.set(o.Z3);cumInf.set(o.cumInf);
+    if(o.effGov)effGov.set(o.effGov);if(o.reactDelay)reactDelay.set(o.reactDelay); // 구 세이브는 필드 부재 — 현행 유지 폴백
     variants=o.variants.map(x=>({...x}));betaMul=o.betaMul;
-    ha5.set(o.ha5);hz5.set(o.hz5);histC5n=o.histC5n;infDay.set(o.infDay);fallDay.set(o.fallDay);actStats={...o.actStats};
+    ha5.set(o.ha5);hz5.set(o.hz5);histC5n=o.histC5n;infDay.set(o.infDay);fallDay.set(o.fallDay);actStats=Object.assign({ring:0,covax:0},o.actStats);
     vacStart.set(o.vacStart);covMilestone=o.covMilestone;
     fearL.set(o.fearL);fatig.set(o.fatig);govFail.set(o.govFail);medLogged.set(o.medLogged);refLogged.set(o.refLogged);govFailDay.set(o.govFailDay);dInc.fill(0);
     revealed.set(o.revealed);everInf.set(o.everInf);hcA.set(o.hcA);hcZ.set(o.hcZ);
-    vac={...o.vac};effects=o.effects.map(e=>({...e}));
+    vac=Object.assign({plat:null,covax:0},o.vac);effects=o.effects.map(e=>({...e})); // 결손 필드 기본값 머지 — 구 세이브·공유 URL 호환 (QA_CHECKLIST D-3)
     hist={A:o.hA.slice(),Z:o.hZ.slice(),R:o.hR.slice(),V:o.hV.slice()};
     evXI=o.evXI.slice();evXK=o.evXK.slice();evInf=o.evInf.slice();evKill=o.evKill.slice();
     if(o.repInf){repInf=o.repInf.slice();repKill=o.repKill.slice();obsU=o.obsU;}
@@ -1482,6 +1521,22 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       b.addEventListener('click',()=>buyAction(key,i));
       acts.appendChild(b);
     }
+    if(!autoMode&&vac.deployed){ // 💉 링 접종 — 백신 완성 후 열리는 5번째 동사 (표적 접종). 미확인국엔 수치를 숨긴다(은닉 정보 규칙, 적대 리뷰 D4-2)
+      const sat=1/(1+(Z[i]+E[i])/(5e-4*c.pop));
+      const est=Math.min(S[i],30*(Z[i]+E[i]),3e6)*sat;
+      const b=document.createElement('button');b.className='act';
+      const ic=document.createElement('span');ic.className='ic';ic.textContent='💉';
+      const mid=document.createElement('span');
+      const nm=document.createElement('div');nm.className='nm';nm.textContent='링 접종';
+      const ds=document.createElement('div');ds.className='ds';
+      ds.textContent=(shown&&Z[i]>=1)?`접촉자 표적 접종 ~${fmtKo(est)} · 추적 가능도 ${Math.round(sat*100)}% — 유행이 커지면 급감`:'확산이 공식 확인된 국가에서만 가능';
+      mid.appendChild(nm);mid.appendChild(ds);
+      const cost=document.createElement('span');cost.className='cost';cost.textContent=RING_COST+' RP';
+      b.appendChild(ic);b.appendChild(mid);b.appendChild(cost);
+      b.disabled=!!outcome||rp<RING_COST||!shown||ctryDead(i)||!!govFail[i]||Z[i]<1||est<1;
+      b.addEventListener('click',()=>buyRing(i));
+      acts.appendChild(b);
+    }
     cpanel.appendChild(acts);
     // 주요 항공 노선
     const air=document.createElement('div');air.className='placeholder';air.style.padding='10px 16px 0';
@@ -1536,22 +1591,74 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     logAdd(A2.ic,`<b>${ctry[ci].name}</b> — ${A2.nm} ${ex?'연장':'개시'}${cost<A2.cost?' · 선제 ½가':''} (−${cost} RP)`);
     applyEffects();if(!mcMode){renderMap();renderPanel();updateHud();} // MC/QA 배치에서는 렌더 생략
   }
+  function setPlatform(k){ // 1회 비가역 선택 — 수동 모드 전용 (자동은 legacy 고정)
+    if(autoMode||vac.plat||vac.deployed||outcome||!PLAT[k]||k==='legacy')return false;
+    if(!PLAT[k].eras.includes(curEra))return false;
+    vac.plat=k;
+    logAdd(PLAT[k].ic,`<b>${PLAT[k].nm} 플랫폼</b> 채택 — ${PLAT[k].ds} · 변경 불가`);
+    if(!mcMode)updateHud();
+    return true;
+  }
   function buyVaccine(){ // 버튼과 콘솔 act('vaccine') 공용 — 버튼 disabled 상태에 의존하지 않는다
-    if(outcome||!eraVacOn||rp<VAC_COST||day-vac.lastBuy<VAC_CD)return;
-    if(vac.deployed){
-      if(vac.eff>=0.92)return;
-      rp-=VAC_COST;vac.lastBuy=day;vac.eff=Math.min(0.92,vac.eff+0.12);
+    if(outcome||!eraVacOn||rp<VAC_COST)return;
+    if(vac.deployed){ // 개량(변이 대응 부스터) — 플랫폼별 폭·쿨다운
+      const p=plat();
+      if(vac.eff>=p.eff0||day-vac.lastBuy<p.cd)return;
+      rp-=VAC_COST;vac.lastBuy=day;vac.eff=Math.min(p.eff0,vac.eff+p.imp);
       actStats.vacBuys++;actStats.rpSpent+=VAC_COST;
       logAdd('💉',`백신 개량 투자 — 효율 ${Math.round(vac.eff*100)}%`);
       updateHud();return;
     }
-    rp-=VAC_COST;vac.lastBuy=day;vac.prog=Math.min(100,vac.prog+Math.max(1,Math.round(P.vacStep*eraVacStepF)));
+    if(day-vac.lastBuy<VAC_CD)return;
+    if(!autoMode&&!vac.plat)setPlatform(platDefault()); // 플랫폼 미선택 투자(봇·콘솔)는 시대 기본값 자동 채택
+    rp-=VAC_COST;vac.lastBuy=day;vac.prog=Math.min(100,vac.prog+Math.max(1,Math.round(P.vacStep*eraVacStepF*plat().step)));
     actStats.vacBuys++;actStats.rpSpent+=VAC_COST;
     logAdd('💉',`백신 연구 투자 — 진행 ${vac.prog}%`);
-    if(vac.prog>=100){vac.deployed=true;vac.eff=0.92;vacDoneDay=day;for(const i2 of playIdx)vacStart[i2]=day+Math.round((1-effGov[i2])*120+rand()*30);logAdd('🎉','<b>백신 완성!</b> 생산 램프업과 국가별 배포가 시작됩니다');}
+    if(vac.prog>=100){vac.deployed=true;vac.eff=plat().eff0;vacDoneDay=day;
+      for(const i2 of playIdx)vacStart[i2]=day+Math.round((1-effGov[i2])*120+rand()*30)+(coldHit(i2)?plat().coldDelay:0);
+      logAdd('🎉',`<b>백신 완성!</b> 효율 ${Math.round(vac.eff*100)}% · 생산 램프업(${Math.round(rampDays())}일)과 국가별 배포가 시작됩니다`);}
     updateHud();
   }
+  const COVAX_COST=40,RING_COST=50;
+  function covaxEffect(){ // 드라이런 — 이번 구매가 실제로 바꾸는 것 (구매 가드·버튼 게이팅 공용, 적대 리뷰 F2/D4-4)
+    let n2=0;
+    for(const i of playIdx){
+      if(effGov[i]>=0.7||govFail[i]||ctryDead(i))continue;
+      if(Math.max(vacDoneDay+10,vacStart[i]-30)<vacStart[i])n2++;
+    }
+    const cap=plat().coldDelay>0&&plat().coldCap+0.005*(vac.covax||0)<0.03;
+    return {n2,cap};
+  }
+  function buyCovax(){ // COVAX 형평 배분 — 저소득국 배포를 앞당기고 콜드체인 상한 완화. vacStart[] 직접 수정 → 예측기(C-3) 자동 반영
+    if(outcome||autoMode||!vac.deployed||vac.covax>=3||rp<COVAX_COST)return;
+    const ef=covaxEffect();
+    if(!ef.n2&&!ef.cap)return; // 효과 0 구매 차단 (링 접종 d2<1과 같은 철학)
+    rp-=COVAX_COST;vac.covax++;actStats.covax++;actStats.rpSpent+=COVAX_COST;
+    let n2=0;
+    for(const i of playIdx){
+      if(effGov[i]>=0.7||govFail[i]||ctryDead(i))continue;
+      const t2=Math.max(vacDoneDay+10,vacStart[i]-30);
+      if(t2<vacStart[i]){vacStart[i]=t2;n2++;}
+    }
+    logAdd('🌍',`<b>COVAX 공동 구매 ${vac.covax}차</b> — 저소득 ${n2}개국 배포 30일 단축${ef.cap?' · 콜드체인 지원(일일 상한 +0.5%p)':''} (−${COVAX_COST} RP)`);
+    if(!mcMode)updateHud();
+  }
+  function buyRing(ci){ // 링 접종 — 접촉자 추적 기반 표적 접종: 유행이 작을 때만 강력(sat 포화). S→V 즉시 이동이라 예측 미러 0줄
+    if(outcome||autoMode||!vac.deployed||rp<RING_COST)return;
+    if(ci<0||!revealed[ci]||ctryDead(ci)||govFail[ci]||Z[ci]<1)return; // 미확인국 거부 — 콘솔 경로도 잠복 레이더로 못 쓴다
+    const Ni=ctry[ci].pop,sat=1/(1+(Z[ci]+E[ci])/(5e-4*Ni));
+    const d2=Math.min(S[ci],30*(Z[ci]+E[ci]),3e6)*sat;
+    if(d2<1)return; // 효과 0인 구매는 막는다 (오미크론급 유행에서는 어차피 미미 — 의도된 반례)
+    rp-=RING_COST;actStats.ring++;actStats.rpSpent+=RING_COST;
+    S[ci]-=d2;V[ci]+=d2;
+    logAdd('💉',`<b>${ctry[ci].name}</b> — 링 접종 ${fmtKo(d2)} (추적 가능도 ${Math.round(sat*100)}%) (−${RING_COST} RP)`);
+    if(!mcMode){renderMap();renderPanel();updateHud();}
+  }
   $('#btnVac').addEventListener('click',buyVaccine);
+  // 선택+첫 투자는 원자적 — RP·쿨다운이 안 되면 비가역 선택도 확정하지 않는다 (적대 리뷰 D4-1)
+  $('#platSeg').addEventListener('click',e=>{const b=e.target.closest('[data-p]');
+    if(b&&!outcome&&rp>=VAC_COST&&day-vac.lastBuy>=VAC_CD&&setPlatform(b.dataset.p))buyVaccine();});
+  $('#btnCovax').addEventListener('click',buyCovax);
 
   // ---- 로그 ----
   const logEl=$('#log');
@@ -1576,11 +1683,37 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     $('#hudRP').textContent=Math.floor(rp)+' RP';
     let na=0;for(const i of playIdx)if(airMul[i]<1)na++;
     $('#hudAir').textContent=Math.round(na/playIdx.length*100)+'%';
-    $('#hudVacPct').textContent=vac.deployed?`효율 ${Math.round(vac.eff*100)}%`:vac.prog+'%';
-    $('#vacBar').style.width=(vac.deployed?vac.eff/0.92*100:vac.prog)+'%';
+    const pp=plat(),platTag=vac.plat&&vac.plat!=='legacy'?pp.ic+' ':'';
+    $('#hudVacPct').textContent=vac.deployed?`${platTag}효율 ${Math.round(vac.eff*100)}%`:platTag+vac.prog+'%';
+    $('#vacBar').style.width=(vac.deployed?vac.eff/pp.eff0*100:vac.prog)+'%';
     const vb=$('#btnVac');
-    vb.disabled=!!outcome||!eraVacOn||(vac.deployed&&vac.eff>=0.92)||rp<VAC_COST||day-vac.lastBuy<VAC_CD;
-    vb.title=!eraVacOn?'이 시대에는 백신 기술이 없습니다':vac.deployed?(vac.eff>=0.92?'백신이 최신 변이에 대응하고 있습니다':'변이 대응 개량 연구 (+12%p)'):(day-vac.lastBuy<VAC_CD?`연구 쿨다운 D-${VAC_CD-(day-vac.lastBuy)}`:`전 세계 공동 백신 연구에 자금을 투입합니다 (+${P.vacStep}%)`);
+    vb.disabled=!!outcome||!eraVacOn||(vac.deployed?(vac.eff>=pp.eff0||day-vac.lastBuy<pp.cd):day-vac.lastBuy<VAC_CD)||rp<VAC_COST;
+    vb.title=!eraVacOn?'이 시대에는 백신 기술이 없습니다'
+      :vac.deployed?(vac.eff>=pp.eff0?'백신이 최신 변이에 대응하고 있습니다':day-vac.lastBuy<pp.cd?`개량 쿨다운 D-${pp.cd-(day-vac.lastBuy)}`:`변이 대응 개량 연구 (+${Math.round(pp.imp*100)}%p)`)
+      :day-vac.lastBuy<VAC_CD?`연구 쿨다운 D-${VAC_CD-(day-vac.lastBuy)}`
+      :(!autoMode&&!vac.plat)?`전 세계 공동 백신 연구에 자금을 투입합니다 — 플랫폼 미선택 시 ${PLAT[platDefault()].nm} 기본 채택`
+      :`전 세계 공동 백신 연구에 자금을 투입합니다 (+${Math.max(1,Math.round(P.vacStep*eraVacStepF*pp.step))}%)`;
+    // 백신 보조 UI 게이팅: 연구 전=플랫폼 선택 / 배포 후=COVAX·변이 압력 (상황실 밀도 유지 — 동시 노출 최대 2개)
+    const pseg=$('#platSeg');
+    {const show=!autoMode&&eraVacOn&&!vac.deployed&&!vac.plat&&!outcome;
+     pseg.style.display=show?'':'none';
+     if(show)for(const b2 of pseg.querySelectorAll('[data-p]')){b2.style.display=PLAT[b2.dataset.p].eras.includes(curEra)?'':'none';
+       b2.disabled=rp<VAC_COST||day-vac.lastBuy<VAC_CD;}} // 버튼 상태 = 클릭 핸들러 가드 (C-6)
+    const cvb=$('#btnCovax');
+    cvb.style.display=(!autoMode&&vac.deployed&&vac.covax<3)?'':'none';
+    {const ef2=cvb.style.display===''?covaxEffect():null;
+     const dead2=ef2&&!ef2.n2&&!ef2.cap;
+     cvb.disabled=!!outcome||rp<COVAX_COST||dead2;
+     cvb.title=dead2?'더 당길 배포가 없습니다 — 저소득국이 모두 조기 배포 중':`형평 배분(${vac.covax}/3) — 저소득국 배포 30일 단축${ef2&&ef2.cap?'·콜드체인 완화':''}. 현재 배포는 정부 효율 순(저소득국 +120일 뒤) — 그 미접종 풀이 변이 압력을 키웁니다`;}
+    const vps=$('#varPStat');
+    {const show2=vac.deployed&&variants.length<GREEK.length&&!outcome;
+     vps.style.display=show2?'':'none';
+     if(show2){let infM=0;for(const i of playIdx)infM+=Z[i]+E[i];
+       const pv=infM>3e4?Math.min(0.025,0.0015+1.0*infM/NW):0;
+       $('#hudVarP').textContent=(pv*100).toFixed(2)+'%/일';
+       $('#varBar').style.width=Math.min(100,pv/0.025*100)+'%';
+       vps.title=P.vesc<1?'오늘 새 변이가 출현할 확률 — 세계 감염 규모에 비례합니다. 저소득국 접종이 늦을수록 이 게이지가 오래 높게 유지되고, 변이는 백신 효율을 깎습니다'
+         :'오늘 새 변이가 출현할 확률 — 세계 감염 규모에 비례합니다. 이 병원체는 항원 안정(vesc=1): 변이가 백신 효율은 깎지 못하고 전파력·특성만 바꿉니다';}}
   }
   function badgeHTML(el,color,icon,label,detail,sub){
     el.textContent='';
@@ -1614,7 +1747,17 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(!pred){tp.textContent='';const d=document.createElement('div');d.className='detail';d.textContent='데이터 수집 중… (시작을 누르면 관측이 쌓입니다)';tp.appendChild(d);return;}
     const ratio=pred.beta/(pred.kappa+1/P.zlife);
     const nextTxt=pred.nexts.length?'다음 감염 예상: '+pred.nexts.map(([i2,p2],k)=>`${'①②③'[k]} ${ctry[i2].name} ${(p2*100).toFixed(0)}%`).join(' '):'';
-    const sub=`β̂=${pred.beta.toFixed(3)} · κ̂=${pred.kappa.toFixed(3)} · 확산지수 ${ratio===Infinity?'∞':ratio.toFixed(2)}${nextTxt?'\n'+nextTxt:''}`;
+    let sub=`β̂=${pred.beta.toFixed(3)} · κ̂=${pred.kappa.toFixed(3)} · 확산지수 ${ratio===Infinity?'∞':ratio.toFixed(2)}${nextTxt?'\n'+nextTxt:''}`;
+    if(eraVacOn&&pred.beta>0){ // 집단면역 문턱 — '비개입 R̂0'(β̂×감염기간, 확산지수와 다른 정의) 기준: 차단·격리 없이 백신만으로 끝내려면 필요한 면역
+      const r0b=pred.beta*(P.zlife+P.epre*P.tinc); // 감염력 풀=Z+epre·E이므로 E 체류(tinc)의 발증 전 전파 기여 포함 (적대 리뷰 D4-3 — 누락 시 오미크론 경고가 뒤집힌다)
+      if(r0b>1.05){
+        const effN=vac.deployed?vac.eff:vac.plat?plat().eff0:PLAT[autoMode?'legacy':platDefault()].eff0; // 미완성이면 예정 플랫폼의 완성 효율로 계산
+        const herd=(1-1/r0b)/Math.max(0.01,effN);
+        let vw2=0,aw2=0;for(const i of playIdx){vw2+=V[i];aw2+=S[i]+V[i]+E[i]+Z[i];}
+        const imm2=vw2/Math.max(1,aw2);
+        sub+=`\n💉 집단면역 문턱 ${herd>1.2?'>120':Math.round(herd*100)}% (비개입 R̂0 ${r0b.toFixed(1)} · 효율 ${Math.round(effN*100)}%) · 현재 면역 ${Math.round(imm2*100)}%${herd>0.97?' — ⚠ 백신 단독 종식 불가, 방역 병행 필요':''}`;
+      }
+    }
     if(pred.doomT!==null)badgeHTML(tp,C.crit,'🧟','전멸 위험',`이 추세면 D+${nf.format(pred.doomT)}경 인류가 소멸합니다`,sub);
     else if(pred.endT!==null)badgeHTML(tp,C.good,'🛡','진압 우세',`D+${nf.format(pred.endT)}경 종식 · 생존 약 ${fmtKo(pred.finalAlive)} 예상`,sub);
     else badgeHTML(tp,C.warn,'⚔️','장기전 예상',`예측 지평(+4000일) 내 종식 없음`,sub);
@@ -1791,7 +1934,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     tile(T('좀비 정점','감염 정점'),fmtKo(peakZ),`D+${nf.format(peakD)}`);
     tile('감염 경험',`${evN}/172개국`,`붕괴 ${ctryFallen.size}곳 · 첫 확인 ${firstRevealDay>=0?'D+'+nf.format(firstRevealDay):'없음'}`);
     tile('변이',variants.length?`${variants.length}종`:'없음',variants.map(x=>x.name+(x.trait==='fast'?'🏃':x.trait==='cold'?'❄️':x.trait==='stealth'?'🕶':'')).join(' · ')||'출현 전 종결');
-    tile('백신',vacDoneDay>=0?`D+${nf.format(vacDoneDay)} 완성`:'미완성',vac.deployed?`최종 효율 ${Math.round(vac.eff*100)}%`:`연구 ${vac.prog}%`);
+    tile('백신',vacDoneDay>=0?`D+${nf.format(vacDoneDay)} 완성`:'미완성',vac.deployed?`${vac.plat&&vac.plat!=='legacy'?plat().ic+' '+plat().nm+' · ':''}최종 효율 ${Math.round(vac.eff*100)}%`:`연구 ${vac.prog}%`);
     tile('예측 성적',acc!=null?`오차 ${(acc*100).toFixed(1)}%`:'표본 부족','과거 예측들의 30일 후 중앙값');
 
     // 시각 분석: 피해 히트맵 + 에피 커브
@@ -1856,7 +1999,10 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     const irow=(l,v)=>{el2('div','l',igrid,l);el2('div','v',igrid,v);};
     irow('⛔ 국경 봉쇄',nf.format(actStats.border)+'회');irow('✈ 공항 폐쇄',nf.format(actStats.airport)+'회');
     irow('🪖 군 투입',nf.format(actStats.military)+'회');irow('😷 방역 통제',nf.format(actStats.dist)+'회');
-    irow('💉 수동 백신 투자',nf.format(actStats.vacBuys)+'회');irow('수동 RP 지출',nf.format(Math.round(actStats.rpSpent))+' RP');
+    irow('💉 수동 백신 투자',nf.format(actStats.vacBuys)+'회');
+    if(actStats.ring)irow('💉 링 접종',nf.format(actStats.ring)+'회');
+    if(actStats.covax)irow('🌍 COVAX 기금',nf.format(actStats.covax)+'회');
+    irow('수동 RP 지출',nf.format(Math.round(actStats.rpSpent))+' RP');
     const sh=el2('div','hint',icard,`시드 ${seedUsed} — 콘솔에서 pandemicSim.restart(${seedUsed})로 이 판을 재현할 수 있습니다.`);
     sh.style.padding='0 16px 12px';
     const xcard=el2('div','card an-sec',c2);
@@ -2218,7 +2364,7 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     if(!runRecorded){runRecorded=true;
       try{const arr=JSON.parse(localStorage.getItem('zs_runs')||'[]');
         arr.push({sc:curScenario,era:curEra,out:outcome.type,day:outcome.day,
-          aliveP:+(outcome.alive/NW*100).toFixed(1),variants:variants.length,
+          aliveP:+(outcome.alive/NW*100).toFixed(1),variants:variants.length,plat:vac.plat,
           score:scr&&scr.score!=null?scr.score:null,grade:(scr&&scr.grade)||null,ts:Date.now()});
         while(arr.length>200)arr.shift();
         localStorage.setItem('zs_runs',JSON.stringify(arr));}catch{}}
@@ -2538,9 +2684,9 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
       const nn=hist.A.length-1;
       let infN=0;for(const i of playIdx)if(Z[i]>=1)infN++;
       return {day,alive:hist.A[nn],Z:hist.Z[nn],R:hist.R[nn],infected:infN,rp:Math.floor(rp),
-        vaccine:vac.prog,outcome,beta:pred?pred.beta:null,kappa:pred?pred.kappa:null,
+        vaccine:vac.prog,plat:vac.plat,covax:vac.covax,outcome,beta:pred?pred.beta:null,kappa:pred?pred.kappa:null,
         origin:ctry[originIdx].name,seed:seedUsed,mode:autoMode?'auto':'manual',effects:effects.length,
-        variants:variants.length,vacEff:vac.deployed?+vac.eff.toFixed(2):null,era:curEra};
+        variants:variants.length,vacEff:vac.deployed?+vac.eff.toFixed(2):null,vacEffMax:plat().eff0,era:curEra};
     },
     restart(seed){running=false;syncStart();$('#banner').style.display='none';restart(seed);return this.state();},
     setParams(o){Object.assign(P,o);return P;},
@@ -2552,8 +2698,11 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
     experiment(){return new Promise(r2=>runExperiment((k,K,res)=>{if(res)r2(res.grid.map(c=>({b:c.beta,k:c.kappa,alive:+(c.alive*100).toFixed(1)})));},true));},
     act(type,cc){
       if(type==='vaccine'){buyVaccine();return vac;}
+      if(type==='platform'){setPlatform(cc);return vac.plat;}
+      if(type==='covax'){buyCovax();return vac.covax;}
       const c2=typeof cc==='number'?ctry[cc]:ctry.find(x=>x.cc===cc||x.name===cc);
       if(!c2)return 'no such country';
+      if(type==='ring'){buyRing(c2.i);return {S:Math.round(S[c2.i]),V:Math.round(V[c2.i]),ring:actStats.ring};}
       buyAction(type,c2.i);return effects.filter(e2=>e2.ci===c2.i);
     },
     // ---- QA 배치용 (tools/qa-bots.js가 사용) ----
@@ -2570,6 +2719,17 @@ const WORLD = {"W":960,"H":500,"C":[["242","FJ","피지",933154,947.6,305.1,178,
         if(S[i]<0||E[i]<0||Z[i]<0||V[i]<0||R[i]<0||F[i]<0)neg++;}
       let mz=0;for(let k=0;k<hist.Z.length;k++)if(hist.Z[k]>mz)mz=hist.Z[k];
       return {S:s,E:e,Z:z,V:v,R:r,F:f,NW,neg,peakZ:mz,rp,vacDoneDay,real:realMode,sc:curScenario,stats:{...actStats}};
+    },
+    vacInfo(){ // QA: 플랫폼·배포 시차 분포 (콜드체인·COVAX 검증용)
+      let cold=0,minS=1/0,maxS=-1/0,sumC=0,nC=0;
+      for(const i of playIdx){
+        if(coldHit(i))cold++;
+        if(vac.deployed){minS=Math.min(minS,vacStart[i]);maxS=Math.max(maxS,vacStart[i]);
+          if(coldHit(i)){sumC+=vacStart[i];nC++;}}
+      }
+      return {plat:vac.plat,covax:vac.covax,eff:+vac.eff.toFixed(3),deployed:vac.deployed,vacDoneDay,
+        coldN:cold,minStart:vac.deployed?minS:null,maxStart:vac.deployed?maxS:null,
+        coldMeanStart:vac.deployed&&nC?Math.round(sumC/nC):null};
     },
     country(cc){
       const c2=typeof cc==='number'?ctry[cc]:ctry.find(x=>x.cc===cc||x.name===cc);

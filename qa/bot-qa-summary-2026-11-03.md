@@ -1,5 +1,8 @@
 # 플레이 봇 QA — 요약
 
+> **4차 배치 (2026-11-04, 백신 현실화 기준선)**: [bot-runs-2026-11-04b.json](bot-runs-2026-11-04b.json) / [.csv](bot-runs-2026-11-04b.csv) — 봇 12종(vax_rush 플랫폼 교차·balanced 부스터·링/COVAX 분기)×시나리오 10×시드 10 = 1,200판, **위반 0 · legacy 무회귀 200/200(auto·idle 전 행이 3차 배치와 비트 동일)**. 현 BASELINES 원본.
+> 플랫폼 분화: 변이 경주(covid·legend·busan)=mRNA 압승(legend 63.6% vs 불활화 0.7%) / 항원 안정(ebola·sars03·wwz)=불활화 동률 / omicron·days28=봉쇄 우세 유지. **legend 사상 첫 수동 3/10승**(balanced D+2778). covid '부스터 경주': 개량 방치 시 사망 34% ↔ 부지런하면 0.9%.
+
 > **3차 배치 (2026-11-04, 리밸런스 기준선)**: [bot-runs-2026-11-04.json](bot-runs-2026-11-04.json) — 봇 12종(봉쇄 2종 추가)×시나리오 10×시드 10 = 1,200판, 엔진 5e5d84f, 위반 0.
 > 리밸런스(용량 포화 추적 θ_tr·wwz 다발 기원·선제 할인·vprot) 검증 + BASELINES 생성 원본.
 > **시나리오별 최적 전략 분화 달성**: busan·days28·flu1918=봉쇄/혼합(busan 최적 D+51 — days28은 자동 1.7% vs 수동 봉쇄 100.2%), wwz(봉쇄 봇 0/10)·ebola·sars03=백신, omicron=봉쇄, covid=균형, legend=전원 폐허.
